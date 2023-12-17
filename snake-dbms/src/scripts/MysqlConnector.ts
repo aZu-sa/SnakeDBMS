@@ -1,4 +1,5 @@
 import { Connection, createConnection } from 'mysql'
+import { attrSplicer, conditionSplicer } from '@/scripts/Splicer'
 import { promisify } from 'util'
 
 interface MysqlConnectionConfig {
@@ -10,7 +11,7 @@ interface MysqlConnectionConfig {
 }
 
 interface MysqlMethod {
-  select(what: string | Array<string>, from: string, where: Array<string>): Promise<Array<any>>
+  select(what: string | Array<string>, from: string, where?: Array<string>): Promise<Array<any>>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -30,10 +31,16 @@ export class MysqlConnector implements MysqlMethod {
   /**
    * SELECT {what} FROM {from} [WHERE {where}]
    */
-  public async select (what: string | Array<string>, from: string, where: string | Array<string>): Promise<Array<any>> {
+  public async select (what: string | Array<string>, from: string, where?: string | Array<string>): Promise<Array<any>> {
     let results: Array<any> = []
+    let sql = `SELECT ${attrSplicer(what)} FROM ${from}`
+    if (typeof where !== 'undefined') {
+      sql = `${sql} WHERE ${conditionSplicer(where)}`
+    }
+    sql += ';'
     try {
-      results = await this.execute('SELECT * FROM username') as Array<any>
+      results = await this.execute(sql) as Array<any>
+      results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
     }
