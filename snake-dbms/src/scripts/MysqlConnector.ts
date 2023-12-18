@@ -15,6 +15,8 @@ interface MysqlMethod {
   insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
   delete(from: string, where: Array<string>): Promise<any>
   update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
+  create(table: string, attrs: Array<string>): Promise<any>
+  drop(table: string): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -101,6 +103,37 @@ export class MysqlConnector implements MysqlMethod {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
     sql += ';'
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * CREATE TABLE {table} ( ${attr} )
+   */
+  public async create (table: string, attrs: Array<string>): Promise<any> {
+    let results: any
+    const sql = `CREATE TABLE ${table} (${attrSplicer(attrs)});`
+    console.log(sql)
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * DROP TABLE ${table}
+   */
+  public async drop (table: string): Promise<any> {
+    let results: any
+    const sql = `DROP TABLE ${table};`
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
