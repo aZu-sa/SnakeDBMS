@@ -7,16 +7,50 @@
                        :width="180"/>
     </el-table>
 
-  <el-button class="3" :type='"primary"' @click="search">查询</el-button>
+    <el-dialog v-model="dialogFormVisible" title="查询">
+    <el-form :model="form">
+      <el-form-item label="属性">
+        <el-input v-model="form.name" />
+      </el-form-item>
+      <el-form-item label="条件">
+        <el-input v-model="form.conditions" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {dialogFormVisible = false; search()}">查询</el-button>
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+  <el-button class="3" :type='"primary"' @click="dialogFormVisible = true">查询</el-button>
 </template>
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 const tableData: AttributeAddableObject = reactive({
   dataList: [],
   dataHeader: []
 })
+let tables: AttributeAddableObject = ref([])
+const dialogFormVisible = ref(false)
+const form = reactive({
+  name: '',
+  region: '',
+  date1: '',
+  date2: '',
+  delivery: false,
+  type: [],
+  resource: '',
+  desc: '',
+  conditions: []
+})
+const getAllTables = async () => {
+  const current = await mysqlConnector.currentDatabase()
+  const tbs = await mysqlConnector.showTables()
+  tables = tbs.map((table: any) => {
+    return table[`Tables_in_${current[0]['DATABASE()']}`]
+  })
+}
 const mysqlConnector = new MysqlConnector({
   host: 'localhost',
   port: 3306,
@@ -24,6 +58,7 @@ const mysqlConnector = new MysqlConnector({
   password: '123456',
   database: 'snake_db'
 })
+getAllTables()
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])

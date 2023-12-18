@@ -24,6 +24,8 @@ interface MysqlMethod {
   commit(): Promise<any>
   createUser(userName: string, password: string):Promise<any>
   showProfiles(): Promise<any>
+  showTables(): Promise<any>
+  currentDatabase(): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -243,6 +245,28 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute('SHOW PROFILES;')
       // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  public async showTables (): Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('SHOW TABLES;')
+      results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  public async currentDatabase (): Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('SELECT DATABASE();')
+      results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
     }
