@@ -57,7 +57,8 @@ interface RedisSetMethod {
 
 const defaultRedisConnectionConfig: RedisConnectionConfig = {
   host: 'localhost',
-  port: 6379
+  port: 6379,
+  database: 0
 }
 
 export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStringMethod, RedisHashMethod, RedisSetMethod {
@@ -82,44 +83,44 @@ export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStr
   }
 
   // RedisBaseMethod
-  public async ping(): Promise<any> {
+  public async ping() {
     return await this.client.ping()
   }
-  public async select(db: number): Promise<any> {
+  public async select(db: number) {
     return await this.client.select(db)
   }
-  public async dbSize(): Promise<any> {
+  public async dbSize() {
     return await this.client.dbSize()
   }
-  public async flushDb(): Promise<any> {
+  public async flushDb() {
     return await this.client.flushDb()
   }
-  public async flushAll(): Promise<any> {
+  public async flushAll() {
     return await this.client.flushAll()
   }
 
   // RedisKeyMethod
-  public async del(...keys: string[]): Promise<any> {
+  public async del(...keys: string[]) {
     return await this.client.del(keys)
   }
 
-  public async exists(key: string): Promise<any> {
+  public async exists(key: string) {
     return await this.client.exists(key)
   }
 
-  public async expire(key: string, ex: number): Promise<any> {
+  public async expire(key: string, ex: number) {
     return await this.client.expire(key, ex)
   }
 
-  public async keys(pattern: string): Promise<any> {
+  public async keys(pattern: string) {
     return await this.client.keys(pattern)
   }
 
-  public async ttl(key: string): Promise<any> {
+  public async ttl(key: string) {
     return await this.client.ttl(key)
   }
 
-  public async type(key: string): Promise<any> {
+  public async type(key: string) {
     return await this.client.type(key)
   }
 
@@ -128,7 +129,7 @@ export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStr
     return await this.client.get(key)
   }
 
-  public async set(key: string, value: string | number, ex?: number, opt?: Options): Promise<any> {
+  public async set(key: string, value: string | number, ex?: number, opt?: Options) {
     let RedisQueryOptions: AttributeAddableObject = {}
     if (ex !== undefined) {
       RedisQueryOptions['EX'] = ex
@@ -147,31 +148,31 @@ export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStr
   }
 
   // RedisHashMethod
-  public async hDel(key: string, field: string): Promise<any> {
+  public async hDel(key: string, field: string) {
     return await this.client.hDel(key, field)
   }
 
-  public async hExists(key: string, field: string): Promise<any> {
+  public async hExists(key: string, field: string) {
     return await this.client.hExists(key, field)
   }
 
-  public async hGet(key: string, field: string): Promise<any> {
+  public async hGet(key: string, field: string) {
     return await this.client.hGet(key, field)
   }
 
-  public async hGetAll(key: string): Promise<any> {
+  public async hGetAll(key: string) {
     return await this.client.hGetAll(key)
   }
 
-  public async hKeys(key: string): Promise<any> {
+  public async hKeys(key: string) {
     return await this.client.hKeys(key)
   }
 
-  public async hSet(key: string, field: string, value: string | number): Promise<any> {
+  public async hSet(key: string, field: string, value: string | number) {
     return await this.client.hSet(key, field, value)
   }
 
-  public async hSetNX(key: string, field: string, value: string | number): Promise<any> {
+  public async hSetNX(key: string, field: string, value: string | number) {
     if (typeof value === 'number') {
       value = value.toString()
     }
@@ -183,14 +184,14 @@ export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStr
   }
 
   // RedisSetMethod
-  public async sAdd(key: string, value: string | number): Promise<any> {
+  public async sAdd(key: string, value: string | number) {
     if (typeof value === 'number') {
       value = value.toString()
     }
     return await this.client.sAdd(key, value)
   }
 
-  public async sMembers(key: string): Promise<any> {
+  public async sMembers(key: string) {
     return await this.client.sMembers(key)
   }
 }
