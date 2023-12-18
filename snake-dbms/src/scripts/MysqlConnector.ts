@@ -19,6 +19,9 @@ interface MysqlMethod {
   drop(table: string): Promise<any>
   createIndex(indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any>
   dropIndex(indexName: string, on: string): Promise<any>
+  startTransaction(): Promise<any>
+  rollback(): Promise<any>
+  commit(): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -167,6 +170,48 @@ export class MysqlConnector implements MysqlMethod {
     const sql = `DROP INDEX ${indexName} ON ${on};`
     try {
       results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * START TRANSACTION
+   */
+  public async startTransaction () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('START TRANSACTION;')
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * ROLLBACK
+   */
+  public async rollback () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('ROLLBACK;')
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * COMMIT
+   */
+  public async commit () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('COMMIT;')
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
