@@ -1,5 +1,5 @@
 import { Connection, createConnection } from 'mysql'
-import { attrSplicer, conditionSplicer, splicer, valuesSplicer } from '@/scripts/Splicer'
+import { attrSplicer, conditionSplicer, valuesSplicer } from '@/scripts/Splicer'
 import { promisify } from 'util'
 
 interface MysqlConnectionConfig {
@@ -17,6 +17,8 @@ interface MysqlMethod {
   update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
   create(table: string, attrs: Array<string>): Promise<any>
   drop(table: string): Promise<any>
+  createIndex(indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any>
+  dropIndex(indexName: string, on: string): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -97,7 +99,6 @@ export class MysqlConnector implements MysqlMethod {
   public async update (table: string, set: Array<string>, where?: Array<string>): Promise<any> {
     let results: any
     let sql: string
-    const valueArr = []
     sql = `UPDATE ${table} SET ${conditionSplicer(set)}`
     if (where !== undefined) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
@@ -134,6 +135,36 @@ export class MysqlConnector implements MysqlMethod {
   public async drop (table: string): Promise<any> {
     let results: any
     const sql = `DROP TABLE ${table};`
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * CREATE {index_type} {index_name} ON {on}({attrs})
+   */
+  public async createIndex (indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any> {
+    let results: any
+    const sql = `CREATE ${indexType} ${indexName} ON ${on}(${attrSplicer(attrs)});`
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * DROP {index_name} ON {on}
+   */
+  public async dropIndex (indexName: string, on: string): Promise<any> {
+    let results: any
+    const sql = `DROP INDEX ${indexName} ON ${on};`
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
