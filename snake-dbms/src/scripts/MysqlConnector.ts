@@ -22,6 +22,8 @@ interface MysqlMethod {
   startTransaction(): Promise<any>
   rollback(): Promise<any>
   commit(): Promise<any>
+  createUser(userName: string, password: string):Promise<any>
+  showProfiles(): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -212,6 +214,34 @@ export class MysqlConnector implements MysqlMethod {
     let results: any
     try {
       results = await this.execute('COMMIT;')
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * CREATE USER {userName}@'%' identified by {password}
+   * GRANT ALL PRIVILEGES ON *.* TO {userName}@'%'
+   */
+  public async createUser (userName: string, password: string):Promise<any> {
+    let results: any
+    let sql = `CREATE USER '${userName}'@'%' identified by '${password}';`
+    try {
+      results = await this.execute(sql)
+      sql = `GRANT ALL PRIVILEGES ON *.* TO '${userName}'@'%';`
+      results = await this.execute(sql)
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  public async showProfiles (): Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('SHOW PROFILES;')
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
