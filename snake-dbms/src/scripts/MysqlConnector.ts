@@ -1,5 +1,5 @@
 import { Connection, createConnection } from 'mysql'
-import { attrSplicer, conditionSplicer } from '@/scripts/Splicer'
+import { attrSplicer, conditionSplicer, valuesSplicer } from '@/scripts/Splicer'
 import { promisify } from 'util'
 
 interface MysqlConnectionConfig {
@@ -12,6 +12,16 @@ interface MysqlConnectionConfig {
 
 interface MysqlMethod {
   select(what: string | Array<string>, from: string, where?: Array<string>): Promise<Array<any>>
+  insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
+  delete(from: string, where: Array<string>): Promise<any>
+  update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
+  create(table: string, attrs: Array<string>): Promise<any>
+  drop(table: string): Promise<any>
+  createIndex(indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any>
+  dropIndex(indexName: string, on: string): Promise<any>
+  startTransaction(): Promise<any>
+  rollback(): Promise<any>
+  commit(): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -34,13 +44,175 @@ export class MysqlConnector implements MysqlMethod {
   public async select (what: string | Array<string>, from: string, where?: string | Array<string>): Promise<Array<any>> {
     let results: Array<any> = []
     let sql = `SELECT ${attrSplicer(what)} FROM ${from}`
-    if (typeof where !== 'undefined') {
+    if (where !== undefined) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
     sql += ';'
     try {
       results = await this.execute(sql) as Array<any>
       results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * INSERT INTO {into} [({attr})] VALUES {values}
+   */
+  public async insert (into: string, values: Array<Array<string>>, attr?: Array<string>): Promise<any> {
+    let sql: string
+    let results: any
+    sql = `INSERT INTO ${into}`
+    if (attr !== undefined) {
+      sql = `${sql}(${attrSplicer(attr)}) VALUES ${valuesSplicer(values)};`
+    } else {
+      sql = `${sql} VALUES ${values};`
+    }
+    console.log(sql)
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * DELETE FROM {from} WHERE {where}
+   */
+  public async delete (from: string, where: Array<string>): Promise<any> {
+    let results: any
+    const sql = `DELETE FROM ${from} WHERE ${conditionSplicer(where)};`
+    console.log(sql)
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(results)
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * UPDATE {table} SET {set} [WHERE {where}]
+   */
+  public async update (table: string, set: Array<string>, where?: Array<string>): Promise<any> {
+    let results: any
+    let sql: string
+    sql = `UPDATE ${table} SET ${conditionSplicer(set)}`
+    if (where !== undefined) {
+      sql = `${sql} WHERE ${conditionSplicer(where)}`
+    }
+    sql += ';'
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * CREATE TABLE {table} ( ${attr} )
+   */
+  public async create (table: string, attrs: Array<string>): Promise<any> {
+    let results: any
+    const sql = `CREATE TABLE ${table} (${attrSplicer(attrs)});`
+    console.log(sql)
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * DROP TABLE ${table}
+   */
+  public async drop (table: string): Promise<any> {
+    let results: any
+    const sql = `DROP TABLE ${table};`
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * CREATE {index_type} {index_name} ON {on}({attrs})
+   */
+  public async createIndex (indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any> {
+    let results: any
+    const sql = `CREATE ${indexType} ${indexName} ON ${on}(${attrSplicer(attrs)});`
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * DROP {index_name} ON {on}
+   */
+  public async dropIndex (indexName: string, on: string): Promise<any> {
+    let results: any
+    const sql = `DROP INDEX ${indexName} ON ${on};`
+    try {
+      results = await this.execute(sql)
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * START TRANSACTION
+   */
+  public async startTransaction () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('START TRANSACTION;')
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * ROLLBACK
+   */
+  public async rollback () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('ROLLBACK;')
+      // results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  /**
+   * COMMIT
+   */
+  public async commit () : Promise<any> {
+    let results: any
+    try {
+      results = await this.execute('COMMIT;')
+      // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
     }
