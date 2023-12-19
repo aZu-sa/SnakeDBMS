@@ -7,7 +7,7 @@
                        :width="180"/>
     </el-table>
 
-    <el-dialog v-model="selectDialog" title="查询" draggable>
+    <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -30,18 +30,18 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {selectDialog = false; searchSubmit()}">查询</el-button>
-        <el-button @click="selectDialog = false">取消</el-button>
+        <el-button type="primary" @click="() => {selectDialog = false; searchSubmit(); handleDialogExit()}">查询</el-button>
+        <el-button @click="selectDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
 
-  <el-dialog v-model="deleteDialog" title="删除" draggable>
+  <el-dialog v-model="deleteDialog" title="删除" draggable :before-close="handleDialogExit">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
@@ -50,19 +50,19 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit()}">删除</el-button>
-        <el-button @click="deleteDialog = false">取消</el-button>
+        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button @click="deleteDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
 
-  <el-dialog v-model="updateDialog" title="更新" draggable>
+  <el-dialog v-model="updateDialog" title="更新" draggable :before-close="handleDialogExit">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
-          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-checkbox-button>
-          </el-checkbox-group>
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
         </div>
       </el-form-item>
       <el-form-item label="联表方式" v-if="form.selectedTables.length > 1">
@@ -86,31 +86,31 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {updateDialog = false; searchSubmit()}">更新</el-button>
-        <el-button @click="updateDialog = false">取消</el-button>
+        <el-button type="primary" @click="() => {updateDialog = false; searchSubmit(); handleDialogExit()}">更新</el-button>
+        <el-button @click="updateDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
-  <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
-  <el-dialog v-model="insertDialog" title="插入" draggable>
+  <el-dialog v-model="insertDialog" title="插入" draggable :before-close="handleDialogExit">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
-          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="getAllAttrs">{{ key }}</el-checkbox-button>
-          </el-checkbox-group>
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
         </div>
       </el-form-item>
       <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
           <el-input v-model="insertData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit()}">插入</el-button>
-        <el-button @click="insertDialog = false">取消</el-button>
+        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit(); handleDialogExit()}">插入</el-button>
+        <el-button @click="insertDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
+    <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
   <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
   <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
 </template>
@@ -150,7 +150,6 @@ function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success'
   })
 }
 async function selectClick () {
-  await getAllTables()
   selectDialog.value = true
 }
 async function deleteClick () {
@@ -159,10 +158,27 @@ async function deleteClick () {
 async function updateClick () {
   updateDialog.value = true
 }
+
+const handleDialogExit = async () => {
+  form.selectedTables = []
+  form.selectedAttrs = []
+  form.conditions = ''
+  form.joinMode = ''
+  form.singleTable = ''
+  insertData.datapair = []
+  tableData.attrs = []
+}
+
 const onSelectedTablesChange = async () => {
   form.selectedAttrs = []
   await getAllAttrs()
 }
+
+const onSingleTableChange = async () => {
+  form.selectedAttrs = []
+  await getSingleAttrs()
+}
+
 const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
   curDatabase.value = current[0]['DATABASE()']
@@ -187,6 +203,18 @@ const getAllAttrs = async () => {
     for (const arrKey of arr) {
       tableData.attrs.push(arrKey)
     }
+  }
+}
+
+const getSingleAttrs = async () => {
+  tableData.attrs = []
+  const res = await mysqlConnector.getTableAttrs(form.singleTable)
+  let arr = []
+  arr = res.map((item) : string => {
+    return form.singleTable + '.' + item.Field
+  })
+  for (const arrKey of arr) {
+    tableData.attrs.push(arrKey)
   }
 }
 
