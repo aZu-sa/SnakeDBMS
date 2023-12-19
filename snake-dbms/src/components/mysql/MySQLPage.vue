@@ -7,7 +7,7 @@
                        :width="180"/>
     </el-table>
 
-    <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit">
+    <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -36,7 +36,7 @@
     </el-form>
   </el-dialog>
 
-  <el-dialog v-model="deleteDialog" title="删除" draggable :before-close="handleDialogExit">
+  <el-dialog v-model="deleteDialog" title="删除" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -56,42 +56,7 @@
     </el-form>
   </el-dialog>
 
-  <el-dialog v-model="updateDialog" title="更新" draggable :before-close="handleDialogExit">
-    <el-form :model="form">
-      <el-form-item label="数据表">
-        <div class="filterBox filterBox-shadow">
-          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
-          </el-radio-group>
-        </div>
-      </el-form-item>
-      <el-form-item label="联表方式" v-if="form.selectedTables.length > 1">
-        <el-input v-model="form.joinMode" :placeholder="'如：table_A a LEFT JOIN table_B b on a.id=b.id'" />
-      </el-form-item>
-      <el-form-item label="属性列" v-if="form.selectedTables.length > 0">
-        <div class="filterBox filterBox-shadow">
-          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
-            <el-row v-for="key in tableData.attrs" :key="key">
-              <el-col>
-              <el-checkbox-button class="checkboxButton" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
-              </el-col>
-              <el-col>
-                <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
-              </el-col>
-            </el-row>
-          </el-checkbox-group>
-        </div>
-      </el-form-item>
-      <el-form-item label="筛选条件">
-        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="() => {updateDialog = false; searchSubmit(); handleDialogExit()}">更新</el-button>
-        <el-button @click="updateDialog = false; handleDialogExit()">取消</el-button>
-      </el-form-item>
-    </el-form>
-  </el-dialog>
-  <el-dialog v-model="insertDialog" title="插入" draggable :before-close="handleDialogExit">
+  <el-dialog v-model="updateDialog" title="更新" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -101,7 +66,28 @@
         </div>
       </el-form-item>
       <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
-          <el-input v-model="insertData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
+          <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
+      </el-form-item>
+      <el-form-item label="筛选条件">
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {updateDialog = false; updateSubmit(); handleDialogExit()}">更新</el-button>
+        <el-button @click="updateDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+  <el-dialog v-model="insertDialog" title="插入" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+      <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
+          <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="() => {insertDialog = false; insertSubmit(); handleDialogExit()}">插入</el-button>
@@ -131,7 +117,7 @@ const selectDialog = ref(false)
 const deleteDialog = ref(false)
 const updateDialog = ref(false)
 const insertDialog = ref(false)
-const insertData = reactive({
+const insertUpdateData = reactive({
   datapair: []
 })
 
@@ -165,7 +151,7 @@ const handleDialogExit = async () => {
   form.conditions = ''
   form.joinMode = ''
   form.singleTable = ''
-  insertData.datapair = []
+  insertUpdateData.datapair = []
   tableData.attrs = []
 }
 
@@ -232,12 +218,12 @@ function getDataHeader () {
 
 const insertSubmit = async () => {
   var values:Array<Array<string>> = []
-  values.push(Object.values(insertData.datapair))
+  values.push(Object.values(insertUpdateData.datapair))
   console.log(values)
-  console.log(Object.keys(insertData.datapair))
+  console.log(Object.keys(insertUpdateData.datapair))
   const result = await mysqlConnector.insert(
     form.singleTable,
-    values, Object.keys(insertData.datapair)
+    values, Object.keys(insertUpdateData.datapair)
   )
   if (result === 'error') {
     msgBox('插入失败（sql语法错误或网络未连接）!', 'error')
@@ -277,13 +263,17 @@ const deleteSubmit = async () => {
   }
 }
 const updateSubmit = async () => {
-  const res = await mysqlConnector.update(form.singleTable, [''], form.conditions)
+  var sets:Array<string> = []
+  for (const key in insertUpdateData.datapair) {
+    sets.push(key + '=' + insertUpdateData.datapair[key])
+  }
+  const res = await mysqlConnector.update(form.singleTable, sets, form.conditions)
   if (res === 'error') {
-    msgBox('删除失败（sql语法错误或网络未连接）!', 'error')
+    msgBox('更新失败（sql语法错误或网络未连接）!', 'error')
     tableData.dataList = []
     tableData.dataHeader = []
   } else {
-    msgBox('删除成功', 'success')
+    msgBox('更新成功', 'success')
   }
 }
 </script>
