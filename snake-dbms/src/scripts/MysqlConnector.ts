@@ -59,6 +59,7 @@ export class MysqlConnector implements MysqlMethod {
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
     }
     return results
   }

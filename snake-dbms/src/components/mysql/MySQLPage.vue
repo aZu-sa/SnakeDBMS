@@ -12,7 +12,7 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedTables">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="getAllAttrs">{{ key }}</el-checkbox-button>
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-checkbox-button>
           </el-checkbox-group>
         </div>
       </el-form-item>
@@ -41,6 +41,8 @@
 import { reactive, ref } from 'vue'
 import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
+import { ElMessage } from 'element-plus'
+import { EpPropMergeType } from 'element-plus/es/utils'
 const tableData: AttributeAddableObject = reactive({
   dataList: [],
   dataHeader: [],
@@ -55,9 +57,20 @@ const form = reactive({
   conditions: '',
   joinMode: ''
 })
+function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success' | 'warning' | 'error' | 'info', unknown>) {
+  ElMessage({
+    showClose: true,
+    message: msg,
+    type: type
+  })
+}
 async function selectClick () {
   await getAllTables()
   dialogFormVisible.value = true
+}
+const onSelectedTablesChange = async () => {
+  form.selectedAttrs = []
+  await getAllAttrs()
 }
 const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
@@ -105,6 +118,13 @@ const search = async () => {
     tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.selectedTables[0], form.conditions)
   }
   getDataHeader()
+  if (tableData.dataList[0] === 'error') {
+    msgBox('查询失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('查询成功', 'success')
+  }
 }
 </script>
 <style scoped>
