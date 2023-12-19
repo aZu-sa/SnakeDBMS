@@ -7,7 +7,7 @@
                        :width="180"/>
     </el-table>
 
-    <el-dialog v-model="dialogFormVisible" title="查询" draggable>
+    <el-dialog v-model="selectDialog" title="查询" draggable>
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -30,12 +30,33 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {dialogFormVisible = false; search()}">查询</el-button>
-        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button type="primary" @click="() => {selectDialog = false; search()}">查询</el-button>
+        <el-button @click="selectDialog = false">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog v-model="deleteDialog" title="删除" draggable>
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.deleteTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+
+      <el-form-item label="筛选条件">
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit()}">删除</el-button>
+        <el-button @click="deleteDialog = false">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -50,12 +71,14 @@ const tableData: AttributeAddableObject = reactive({
   attrs: []
 })
 const curDatabase: AttributeAddableObject = ref('')
-const dialogFormVisible = ref(false)
+const selectDialog = ref(false)
+const deleteDialog = ref(false)
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
   conditions: '',
-  joinMode: ''
+  joinMode: '',
+  deleteTable: ''
 })
 function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success' | 'warning' | 'error' | 'info', unknown>) {
   ElMessage({
@@ -66,7 +89,10 @@ function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success'
 }
 async function selectClick () {
   await getAllTables()
-  dialogFormVisible.value = true
+  selectDialog.value = true
+}
+async function deleteClick () {
+  deleteDialog.value = true
 }
 const onSelectedTablesChange = async () => {
   form.selectedAttrs = []
@@ -105,7 +131,10 @@ const mysqlConnector = new MysqlConnector({
   user: 'root',
   password: '123456',
   database: 'snake_db'
-})
+});
+(async () => {
+  await getAllTables()
+})()
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])
@@ -124,6 +153,16 @@ const search = async () => {
     tableData.dataHeader = []
   } else {
     msgBox('查询成功', 'success')
+  }
+}
+const deleteSubmit = async () => {
+  const res = await mysqlConnector.delete(form.deleteTable, form.conditions)
+  if (res === 'error') {
+    msgBox('删除失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('删除成功', 'success')
   }
 }
 </script>

@@ -13,7 +13,7 @@ interface MysqlConnectionConfig {
 interface MysqlMethod {
   select(what: string | Array<string>, from: string, where?: string): Promise<Array<any>>
   insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
-  delete(from: string, where: Array<string>): Promise<any>
+  delete(from: string, where: string): Promise<any>
   update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
   create(table: string, attrs: Array<string>): Promise<any>
   drop(table: string): Promise<any>
@@ -89,7 +89,7 @@ export class MysqlConnector implements MysqlMethod {
   /**
    * DELETE FROM {from} WHERE {where}
    */
-  public async delete (from: string, where: Array<string>): Promise<any> {
+  public async delete (from: string, where: string): Promise<any> {
     let results: any
     const sql = `DELETE FROM ${from} WHERE ${conditionSplicer(where)};`
     console.log(sql)
@@ -97,7 +97,7 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
-      console.log(results)
+      results = 'error'
       console.log(e)
     }
     return results
