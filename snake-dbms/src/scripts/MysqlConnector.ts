@@ -119,6 +119,7 @@ export class MysqlConnector implements MysqlMethod {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
     sql += ';'
+    console.log(sql)
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
