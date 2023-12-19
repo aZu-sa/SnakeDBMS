@@ -11,7 +11,7 @@ interface MysqlConnectionConfig {
 }
 
 interface MysqlMethod {
-  select(what: string | Array<string>, from: string, where?: Array<string>): Promise<Array<any>>
+  select(what: string | Array<string>, from: string, where?: string): Promise<Array<any>>
   insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
   delete(from: string, where: Array<string>): Promise<any>
   update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
@@ -46,7 +46,7 @@ export class MysqlConnector implements MysqlMethod {
   /**
    * SELECT {what} FROM {from} [WHERE {where}]
    */
-  public async select (what: string | Array<string>, from: string, where?: string | Array<string>): Promise<Array<any>> {
+  public async select (what: string | Array<string>, from: string, where?: string): Promise<Array<any>> {
     let results: Array<any> = []
     let sql = `SELECT ${attrSplicer(what)} FROM ${from}`
     if (where !== undefined) {

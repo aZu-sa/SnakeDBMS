@@ -16,18 +16,14 @@
           </el-checkbox-group>
         </div>
       </el-form-item>
-      <el-form-item label="属性列">
+      <el-form-item label="联表方式" v-if="form.selectedTables.length > 1">
+        <el-input v-model="form.joinMode" :placeholder="'如：table_A a LEFT JOIN table_B b on a.id=b.id'" />
+      </el-form-item>
+      <el-form-item label="属性列" v-if="form.selectedTables.length > 0">
         <div class="filterBox filterBox-shadow">
-<!--          <el-row class="filterGroup" v-for="(tb) in form.selectedTables" :key="tb">-->
-<!--            <el-col :span="6">-->
-<!--              <el-text class="checkboxGroupName">{{ tb }}</el-text>-->
-<!--            </el-col>-->
-<!--            <el-col :span="18">-->
-            <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
-              <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key">{{ key }}</el-checkbox-button>
-            </el-checkbox-group>
-<!--            </el-col>-->
-<!--          </el-row>-->
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
+          </el-checkbox-group>
         </div>
       </el-form-item>
       <el-form-item label="筛选条件">
@@ -51,13 +47,13 @@ const tableData: AttributeAddableObject = reactive({
   tables: [],
   attrs: []
 })
-const attrs = ref<AttributeAddableObject>({})
 const curDatabase: AttributeAddableObject = ref('')
 const dialogFormVisible = ref(false)
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
-  conditions: []
+  conditions: [],
+  joinMode: ''
 })
 async function selectClick () {
   await getAllTables()
@@ -101,9 +97,13 @@ function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])
 }
+
 const search = async () => {
-  const res = await mysqlConnector.select('*', 'user')
-  tableData.dataList = res
+  if (form.selectedTables.length > 1) {
+    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.joinMode, form.conditions)
+  } else {
+    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.selectedTables[0], form.conditions)
+  }
   getDataHeader()
 }
 </script>
