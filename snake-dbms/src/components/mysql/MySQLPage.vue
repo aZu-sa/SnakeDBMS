@@ -9,11 +9,15 @@
 
     <el-dialog v-model="dialogFormVisible" title="查询">
     <el-form :model="form">
-      <el-form-item label="属性">
-        <el-input v-model="form.name" />
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="selectTables">
+            <el-checkbox-button class="checkboxButton" v-for="key in tables" :key="key" :label="key">{{ key }}</el-checkbox-button>
+          </el-checkbox-group>
+        </div>
       </el-form-item>
-      <el-form-item label="条件">
-        <el-input v-model="form.conditions" />
+      <el-form-item label="筛选条件">
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="() => {dialogFormVisible = false; search()}">查询</el-button>
@@ -21,7 +25,7 @@
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-button class="3" :type='"primary"' @click="dialogFormVisible = true">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="() => {dialogFormVisible = true; getAllTables()}">查询</el-button>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -31,7 +35,9 @@ const tableData: AttributeAddableObject = reactive({
   dataList: [],
   dataHeader: []
 })
+const curDatabase: AttributeAddableObject = ref('')
 let tables: AttributeAddableObject = ref([])
+const selectTables: AttributeAddableObject = ref([])
 const dialogFormVisible = ref(false)
 const form = reactive({
   name: '',
@@ -44,11 +50,15 @@ const form = reactive({
   desc: '',
   conditions: []
 })
-const getAllTables = async () => {
+const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
+  curDatabase.value = current[0]['DATABASE()']
+}
+const getAllTables = async () => {
+  await getCurDatabase()
   const tbs = await mysqlConnector.showTables()
   tables = tbs.map((table: any) => {
-    return table[`Tables_in_${current[0]['DATABASE()']}`]
+    return table[`Tables_in_${curDatabase.value}`]
   })
 }
 const mysqlConnector = new MysqlConnector({

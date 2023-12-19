@@ -26,6 +26,7 @@ interface MysqlMethod {
   showProfiles(): Promise<any>
   showTables(): Promise<any>
   currentDatabase(): Promise<any>
+  // getTableAttrs(table: string): Promise<any>
 }
 
 export class MysqlConnector implements MysqlMethod {
