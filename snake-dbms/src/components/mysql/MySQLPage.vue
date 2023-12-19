@@ -30,7 +30,7 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {selectDialog = false; search()}">查询</el-button>
+        <el-button type="primary" @click="() => {selectDialog = false; searchSubmit()}">查询</el-button>
         <el-button @click="selectDialog = false">取消</el-button>
       </el-form-item>
     </el-form>
@@ -86,12 +86,31 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {updateDialog = false; search()}">更新</el-button>
+        <el-button type="primary" @click="() => {updateDialog = false; searchSubmit()}">更新</el-button>
         <el-button @click="updateDialog = false">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
+  <el-dialog v-model="insertDialog" title="插入" draggable>
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="getAllAttrs">{{ key }}</el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </el-form-item>
+      <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
+          <el-input v-model="insertData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit()}">插入</el-button>
+        <el-button @click="insertDialog = false">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
   <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
   <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
 </template>
@@ -111,6 +130,11 @@ const curDatabase: AttributeAddableObject = ref('')
 const selectDialog = ref(false)
 const deleteDialog = ref(false)
 const updateDialog = ref(false)
+const insertDialog = ref(false)
+const insertData = reactive({
+  datapair: []
+})
+
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
@@ -167,21 +191,36 @@ const getAllAttrs = async () => {
 }
 
 const mysqlConnector = new MysqlConnector({
-  host: 'localhost',
+  host: '10.242.68.143',
   port: 3306,
   user: 'root',
   password: '123456',
   database: 'snake_db'
-});
-(async () => {
-  await getAllTables()
-})()
+})
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])
 }
 
-const search = async () => {
+const insertSubmit = async () => {
+  var values:Array<Array<string>> = []
+  values.push(Object.values(insertData.datapair))
+  console.log(values)
+  console.log(Object.keys(insertData.datapair))
+  const result = await mysqlConnector.insert(
+    form.singleTable,
+    values, Object.keys(insertData.datapair)
+  )
+  if (result === 'error') {
+    msgBox('插入失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('插入成功', 'success')
+  }
+}
+
+const searchSubmit = async () => {
   if (form.selectedTables.length > 1) {
     tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.joinMode, form.conditions)
   } else {
@@ -195,7 +234,10 @@ const search = async () => {
   } else {
     msgBox('查询成功', 'success')
   }
-}
+};
+(async () => {
+  await getAllTables()
+})()
 const deleteSubmit = async () => {
   const res = await mysqlConnector.delete(form.singleTable, form.conditions)
   if (res === 'error') {

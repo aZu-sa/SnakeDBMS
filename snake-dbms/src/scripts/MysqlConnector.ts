@@ -79,11 +79,16 @@ export class MysqlConnector implements MysqlMethod {
     console.log(sql)
     try {
       results = await this.execute(sql)
-      // results = JSON.parse(JSON.stringify(results))
+      console.log(results)
+      results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       console.log(e)
+      return 'error'
     }
-    return results
+    return 'success'
   }
 
   /**

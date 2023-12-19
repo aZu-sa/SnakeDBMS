@@ -1,7 +1,7 @@
 <template>
   <div class="home">
 <!--    <img alt="Vue logo" src="../assets/logo.png">-->
-<!--    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>-->
+      <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
     <MySQLPage></MySQLPage>
   </div>
 </template>
@@ -13,6 +13,7 @@ import MySQLPage from '@/components/mysql/MySQLPage.vue' // @ is an alias to /sr
 
 @Options({
   components: {
+    HelloWorld,
     MySQLPage
   }
 })
