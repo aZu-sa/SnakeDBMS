@@ -40,7 +40,7 @@
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
-          <el-radio-group class="checkboxGroup" tag="span" v-model="form.deleteTable">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
             <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-radio-button>
           </el-radio-group>
         </div>
@@ -55,8 +55,45 @@
       </el-form-item>
     </el-form>
   </el-dialog>
+
+  <el-dialog v-model="updateDialog" title="更新" draggable>
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </el-form-item>
+      <el-form-item label="联表方式" v-if="form.selectedTables.length > 1">
+        <el-input v-model="form.joinMode" :placeholder="'如：table_A a LEFT JOIN table_B b on a.id=b.id'" />
+      </el-form-item>
+      <el-form-item label="属性列" v-if="form.selectedTables.length > 0">
+        <div class="filterBox filterBox-shadow">
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
+            <el-row v-for="key in tableData.attrs" :key="key">
+              <el-col>
+              <el-checkbox-button class="checkboxButton" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
+              </el-col>
+              <el-col>
+                <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+              </el-col>
+            </el-row>
+          </el-checkbox-group>
+        </div>
+      </el-form-item>
+      <el-form-item label="筛选条件">
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {updateDialog = false; search()}">更新</el-button>
+        <el-button @click="updateDialog = false">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
   <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
+  <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -73,12 +110,13 @@ const tableData: AttributeAddableObject = reactive({
 const curDatabase: AttributeAddableObject = ref('')
 const selectDialog = ref(false)
 const deleteDialog = ref(false)
+const updateDialog = ref(false)
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
   conditions: '',
   joinMode: '',
-  deleteTable: ''
+  singleTable: ''
 })
 function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success' | 'warning' | 'error' | 'info', unknown>) {
   ElMessage({
@@ -93,6 +131,9 @@ async function selectClick () {
 }
 async function deleteClick () {
   deleteDialog.value = true
+}
+async function updateClick () {
+  updateDialog.value = true
 }
 const onSelectedTablesChange = async () => {
   form.selectedAttrs = []
@@ -156,7 +197,17 @@ const search = async () => {
   }
 }
 const deleteSubmit = async () => {
-  const res = await mysqlConnector.delete(form.deleteTable, form.conditions)
+  const res = await mysqlConnector.delete(form.singleTable, form.conditions)
+  if (res === 'error') {
+    msgBox('删除失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('删除成功', 'success')
+  }
+}
+const updateSubmit = async () => {
+  const res = await mysqlConnector.update(form.singleTable, [''], form.conditions)
   if (res === 'error') {
     msgBox('删除失败（sql语法错误或网络未连接）!', 'error')
     tableData.dataList = []

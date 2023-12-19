@@ -14,7 +14,7 @@ interface MysqlMethod {
   select(what: string | Array<string>, from: string, where?: string): Promise<Array<any>>
   insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
   delete(from: string, where: string): Promise<any>
-  update(table: string, set: Array<string>, where?: Array<string>): Promise<any>
+  update(table: string, set: Array<string>, where?: string): Promise<any>
   create(table: string, attrs: Array<string>): Promise<any>
   drop(table: string): Promise<any>
   createIndex(indexType: string, indexName: string, on: string, attrs: Array<string>): Promise<any>
@@ -106,11 +106,11 @@ export class MysqlConnector implements MysqlMethod {
   /**
    * UPDATE {table} SET {set} [WHERE {where}]
    */
-  public async update (table: string, set: Array<string>, where?: Array<string>): Promise<any> {
+  public async update (table: string, set: Array<string>, where?: string): Promise<any> {
     let results: any
     let sql: string
     sql = `UPDATE ${table} SET ${conditionSplicer(set)}`
-    if (where !== undefined) {
+    if (where !== undefined && where.length > 0) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
     sql += ';'
@@ -118,6 +118,7 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
+      results = 'error'
       console.log(e)
     }
     return results
