@@ -15,7 +15,7 @@ const mysqlConnector = new MysqlConnector({ user: 'root', password: 'snakedbms',
 const speedRatio = new SpeedRatio(1000)
 const ratio = speedRatio.getRatio()
 
-const query = mysqlConnector.conn.query('SELECT * FROM sell JOIN wholesale')
+const query = mysqlConnector.conn.query('SELECT * FROM sell')
 query.on('error', function (err) {
   console.log('ERROR')
   console.log(err)

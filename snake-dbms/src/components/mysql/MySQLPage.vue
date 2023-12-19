@@ -95,10 +95,20 @@
       </el-form-item>
     </el-form>
   </el-dialog>
-    <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
   <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
   <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
   <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
+  <el-switch
+    v-model="transactionSwitch"
+    class="ml-2"
+    inline-prompt
+    active-text="事务已开启"
+    inactive-text="事务已关闭"
+    @change="transactionChange"
+  />
+  <el-button class="3" :type='"primary"' @click="transactionCommit" v-if="transactionSwitch === true">事务提交</el-button>
+  <el-button class="3" :type='"primary"' @click="transactionRollback" v-if="transactionSwitch === true">事务回滚</el-button>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -117,6 +127,7 @@ const selectDialog = ref(false)
 const deleteDialog = ref(false)
 const updateDialog = ref(false)
 const insertDialog = ref(false)
+const transactionSwitch = ref()
 const insertUpdateData = reactive({
   datapair: []
 })
@@ -205,11 +216,12 @@ const getSingleAttrs = async () => {
 }
 
 const mysqlConnector = new MysqlConnector({
-  host: '10.242.68.143',
+  host: 'localhost',
   port: 3306,
   user: 'root',
   password: '123456',
-  database: 'snake_db'
+  database: 'snake_db',
+  flags: 'INTERACTIVE'
 })
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
@@ -274,6 +286,43 @@ const updateSubmit = async () => {
     tableData.dataHeader = []
   } else {
     msgBox('更新成功', 'success')
+  }
+}
+const transactionChange = async () => {
+  let res: any
+  if (transactionSwitch.value) {
+    res = await mysqlConnector.startTransaction()
+  } else {
+    res = await mysqlConnector.rollback()
+  }
+  if (res === 'error') {
+    msgBox('事务更改请求失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('事务更改成功', 'success')
+  }
+}
+const transactionCommit = async () => {
+  const res = await mysqlConnector.commit()
+  transactionSwitch.value = false
+  if (res === 'error') {
+    msgBox('事务更改请求失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('事务更改成功', 'success')
+  }
+}
+const transactionRollback = async () => {
+  const res = await mysqlConnector.rollback()
+  transactionSwitch.value = false
+  if (res === 'error') {
+    msgBox('事务更改请求失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('事务更改成功', 'success')
   }
 }
 </script>

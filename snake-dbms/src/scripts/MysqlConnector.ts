@@ -7,7 +7,8 @@ interface MysqlConnectionConfig {
   port?: number,
   user?: string,
   password?: string,
-  database?: string
+  database?: string,
+  flags?: string
 }
 
 interface MysqlMethod {
@@ -200,6 +201,7 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute('START TRANSACTION;')
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
+      results = 'error'
       console.log(e)
     }
     return results
@@ -214,6 +216,7 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute('ROLLBACK;')
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
+      results = 'error'
       console.log(e)
     }
     return results
@@ -228,6 +231,7 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute('COMMIT;')
       // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
+      results = 'error'
       console.log(e)
     }
     return results
