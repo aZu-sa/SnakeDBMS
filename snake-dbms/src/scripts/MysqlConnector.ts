@@ -49,10 +49,11 @@ export class MysqlConnector implements MysqlMethod {
   public async select (what: string | Array<string>, from: string, where?: string): Promise<Array<any>> {
     let results: Array<any> = []
     let sql = `SELECT ${attrSplicer(what)} FROM ${from}`
-    if (where !== undefined) {
+    if (where !== undefined && where.length > 0) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
     sql += ';'
+    console.log(sql)
     try {
       results = await this.execute(sql) as Array<any>
       results = JSON.parse(JSON.stringify(results))

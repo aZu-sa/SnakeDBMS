@@ -52,7 +52,7 @@ const dialogFormVisible = ref(false)
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
-  conditions: [],
+  conditions: '',
   joinMode: ''
 })
 async function selectClick () {
