@@ -26,7 +26,7 @@ interface MysqlMethod {
   showProfiles(): Promise<any>
   showTables(): Promise<any>
   currentDatabase(): Promise<any>
-  // getTableAttrs(table: string): Promise<any>
+  getTableAttrs(table: string): Promise<Array<any>>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -267,6 +267,17 @@ export class MysqlConnector implements MysqlMethod {
     let results: any
     try {
       results = await this.execute('SELECT DATABASE();')
+      results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+    }
+    return results
+  }
+
+  public async getTableAttrs (table: string): Promise<Array<any>> {
+    let results: any
+    try {
+      results = await this.execute(`SHOW COLUMNS FROM ${table};`)
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)

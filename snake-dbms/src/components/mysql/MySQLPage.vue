@@ -7,13 +7,27 @@
                        :width="180"/>
     </el-table>
 
-    <el-dialog v-model="dialogFormVisible" title="查询">
+    <el-dialog v-model="dialogFormVisible" title="查询" draggable>
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
-          <el-checkbox-group class="checkboxGroup" tag="span" v-model="selectTables">
-            <el-checkbox-button class="checkboxButton" v-for="key in tables" :key="key" :label="key">{{ key }}</el-checkbox-button>
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedTables">
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="getAllAttrs">{{ key }}</el-checkbox-button>
           </el-checkbox-group>
+        </div>
+      </el-form-item>
+      <el-form-item label="属性列">
+        <div class="filterBox filterBox-shadow">
+<!--          <el-row class="filterGroup" v-for="(tb) in form.selectedTables" :key="tb">-->
+<!--            <el-col :span="6">-->
+<!--              <el-text class="checkboxGroupName">{{ tb }}</el-text>-->
+<!--            </el-col>-->
+<!--            <el-col :span="18">-->
+            <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
+              <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key">{{ key }}</el-checkbox-button>
+            </el-checkbox-group>
+<!--            </el-col>-->
+<!--          </el-row>-->
         </div>
       </el-form-item>
       <el-form-item label="筛选条件">
@@ -25,7 +39,7 @@
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-button class="3" :type='"primary"' @click="() => {dialogFormVisible = true; getAllTables()}">查询</el-button>
+  <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -33,23 +47,22 @@ import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 const tableData: AttributeAddableObject = reactive({
   dataList: [],
-  dataHeader: []
+  dataHeader: [],
+  tables: [],
+  attrs: []
 })
+const attrs = ref<AttributeAddableObject>({})
 const curDatabase: AttributeAddableObject = ref('')
-let tables: AttributeAddableObject = ref([])
-const selectTables: AttributeAddableObject = ref([])
 const dialogFormVisible = ref(false)
 const form = reactive({
-  name: '',
-  region: '',
-  date1: '',
-  date2: '',
-  delivery: false,
-  type: [],
-  resource: '',
-  desc: '',
+  selectedTables: [],
+  selectedAttrs: [],
   conditions: []
 })
+async function selectClick () {
+  await getAllTables()
+  dialogFormVisible.value = true
+}
 const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
   curDatabase.value = current[0]['DATABASE()']
@@ -57,10 +70,26 @@ const getCurDatabase = async () => {
 const getAllTables = async () => {
   await getCurDatabase()
   const tbs = await mysqlConnector.showTables()
-  tables = tbs.map((table: any) => {
+  tableData.tables = tbs.map((table: any) => {
     return table[`Tables_in_${curDatabase.value}`]
   })
+  await getAllAttrs()
 }
+const getAllAttrs = async () => {
+  tableData.attrs = []
+  for (const key in form.selectedTables) {
+    const table = form.selectedTables[key] as string
+    const res = await mysqlConnector.getTableAttrs(table)
+    let arr = []
+    arr = res.map((item) : string => {
+      return table + '.' + item.Field
+    })
+    for (const arrKey of arr) {
+      tableData.attrs.push(arrKey)
+    }
+  }
+}
+
 const mysqlConnector = new MysqlConnector({
   host: 'localhost',
   port: 3306,
@@ -68,7 +97,6 @@ const mysqlConnector = new MysqlConnector({
   password: '123456',
   database: 'snake_db'
 })
-getAllTables()
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])
