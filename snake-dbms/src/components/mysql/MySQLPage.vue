@@ -42,13 +42,14 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit(); clearDataTable();}">删除</el-button>
         <el-button @click="deleteDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
 
   <el-dialog v-model="updateDialog" title="更新" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-text>不需要更新的属性可以为空</el-text>
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -64,7 +65,7 @@
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {updateDialog = false; updateSubmit(); handleDialogExit()}">更新</el-button>
+        <el-button type="primary" @click="() => {updateDialog = false; updateSubmit(); handleDialogExit(); clearDataTable();}">更新</el-button>
         <el-button @click="updateDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -82,7 +83,7 @@
           <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit(); handleDialogExit()}">插入</el-button>
+        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit(); handleDialogExit(); clearDataTable();}">插入</el-button>
         <el-button @click="insertDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -271,6 +272,10 @@ const handleDialogExit = async () => {
   tableData.attrs = []
   indexData.indexType = ''
   indexData.indexName = ''
+}
+
+const clearDataTable = async () => {
+  tableData.dataList = []
 }
 
 const onSelectedTablesChange = async () => {

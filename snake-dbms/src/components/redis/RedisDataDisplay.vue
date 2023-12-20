@@ -12,17 +12,23 @@
     <el-tab-pane label="插入">
       <el-form label-width="100px">
         <el-form-item label="键">
-          <el-input />
+          <el-input v-model="insertForm.key" />
         </el-form-item>
-        <el-form-item label="类型">
+        <el-form-item label="类型" v-model="insertForm.type">
           <el-select>
-            <el-option>string</el-option>
-            <el-option>hash</el-option>
-            <el-option>set</el-option>
+            <el-option value="string">String</el-option>
+            <el-option value="set">Set</el-option>
+            <el-option value="hash">Hash</el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="域" v-if="insertForm.type === 'hash'">
+          <el-input v-model="insertForm.field" />
+        </el-form-item>
+        <el-form-item label="值">
+          <el-input v-model="insertForm.value" />
+        </el-form-item>
         <el-form-item>
-
+          <el-button type="primary" :onclick="handleInsert">插入</el-button>
         </el-form-item>
       </el-form>
     </el-tab-pane>
@@ -39,13 +45,24 @@
 import { RedisConnector } from '@/scripts/RedisConnector'
 import { ref } from 'vue'
 
+const insertForm = ref({
+  key: '',
+  type: '',
+  field: '',
+  value: ''
+})
+
+const handleInsert = () => {
+  console.log(insertForm.value)
+}
+
 const props = defineProps({
-  Connector: {
+  redisConnector: {
     type: Object,
     required: true
   }
 })
-const redisConnector = props.Connector as RedisConnector
+const redisConnector = props.redisConnector as RedisConnector
 const allData = ref(await redisConnector.autoGetAll())
 
 async function refresh () {
