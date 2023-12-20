@@ -1,12 +1,4 @@
 <template>
-    <el-table :data="tableData.dataList" stripe align="center">
-      <el-table-column v-for="(item, index) in tableData.dataHeader"
-                       :key="index"
-                       :label="item"
-                       :prop="item"
-                       :width="180"/>
-    </el-table>
-
     <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
@@ -125,7 +117,7 @@
         <el-input v-model="indexData.indexName"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {addIndexDialog = false; addIndexSubmit(); handleDialogExit()}">插入</el-button>
+        <el-button type="primary" @click="() => {addIndexDialog = false; addIndexSubmit(); handleDialogExit()}">添加</el-button>
         <el-button @click="addIndexDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -149,6 +141,22 @@
       </el-form-item>
     </el-form>
   </el-dialog>
+  <el-dialog v-model="showIndexDialog" title="显示索引信息" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="primary" @click="() => {showIndexDialog = false; showIndexSubmit(); handleDialogExit()}">显示</el-button>
+        <el-button @click="showIndexDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
 
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
   <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
@@ -156,17 +164,26 @@
   <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
   <el-button class="3" :type='"primary"' @click="addIndexClick">添加索引</el-button>
   <el-button class="3" :type='"primary"' @click="dropIndexClick">删除索引</el-button>
-
-  <el-switch
-    v-model="transactionSwitch"
-    class="ml-2"
-    inline-prompt
-    active-text="事务已开启"
-    inactive-text="事务已关闭"
-    @change="transactionChange"
-  />
-  <el-button class="3" :type='"primary"' @click="transactionCommit" v-if="transactionSwitch === true">事务提交</el-button>
-  <el-button class="3" :type='"primary"' @click="transactionRollback" v-if="transactionSwitch === true">事务回滚</el-button>
+  <el-button class="3" :type='"primary"' @click="showIndexClick">显示索引信息</el-button>
+  <div class="transaction-box">
+    <el-switch
+      v-model="transactionSwitch"
+      size="large"
+      class="transaction-switch"
+      inline-prompt
+      active-text="事务已开启"
+      inactive-text="事务已关闭"
+      @change="transactionChange"
+    />
+    <el-button class="3" :type='"success"' @click="transactionCommit" v-if="transactionSwitch">事务提交</el-button>
+    <el-button class="3" :type='"primary"' @click="transactionRollback" v-if="transactionSwitch">事务回滚</el-button>
+  </div>
+  <el-table :data="tableData.dataList" stripe align="center" max-height="250"><el-table-column v-for="(item, index) in tableData.dataHeader"
+                                                                                               :key="index"
+                                                                                               :label="item"
+                                                                                               :prop="item"
+                                                                                               :width="180"/>
+  </el-table>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -193,6 +210,7 @@ const updateDialog = ref(false)
 const insertDialog = ref(false)
 const addIndexDialog = ref(false)
 const dropIndexDialog = ref(false)
+const showIndexDialog = ref(false)
 const transactionSwitch = ref(false)
 const insertUpdateData = reactive({
   datapair: []
@@ -229,6 +247,9 @@ async function addIndexClick () {
 }
 async function dropIndexClick () {
   dropIndexDialog.value = true
+}
+async function showIndexClick () {
+  showIndexDialog.value = true
 }
 const handleDialogExit = async () => {
   form.selectedTables = []
@@ -426,6 +447,17 @@ const dropIndexSubmit = async () => {
     msgBox('删除索引成功', 'success')
   }
 }
+const showIndexSubmit = async () => {
+  tableData.dataList = await mysqlConnector.showIndex(form.singleTable)
+  getDataHeader()
+  if (tableData.dataList[0] === 'error') {
+    msgBox('显示索引失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('显示索引成功', 'success')
+  }
+}
 </script>
 <style scoped>
 .resultTableColumn {
@@ -437,4 +469,11 @@ const dropIndexSubmit = async () => {
   align-items: center !important;
 }
 
+.transaction-box {
+  margin: 10px 0;
+}
+
+.transaction-switch {
+  margin-right: 5px;
+}
 </style>

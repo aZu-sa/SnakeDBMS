@@ -29,6 +29,7 @@ interface MysqlMethod {
   showTables(): Promise<any>
   currentDatabase(): Promise<any>
   getTableAttrs(table: string): Promise<Array<any>>
+  showIndex(table: string): Promise<Array<any>>
 }
 
 export class MysqlConnector implements MysqlMethod {
@@ -312,6 +313,22 @@ export class MysqlConnector implements MysqlMethod {
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
+    }
+    return results
+  }
+
+  /**
+   * SHOW INDEX FROM {table}
+   */
+  public async showIndex (table: string): Promise<Array<any>> {
+    let results: any
+    try {
+      results = await this.execute(`SHOW INDEX FROM ${table};`)
+      results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
+      results = ['error']
     }
     return results
   }
