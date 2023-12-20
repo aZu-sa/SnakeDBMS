@@ -123,7 +123,7 @@
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-dialog v-model="dropIndexDialog" title="删除" draggable :before-close="handleDialogExit" :show-close="false">
+  <el-dialog v-model="dropIndexDialog" title="删除索引" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
@@ -158,6 +158,73 @@
       </el-form-item>
     </el-form>
   </el-dialog>
+  <el-dialog v-model="dropTableDialog" title="删除数据表" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {dropTableDialog = false; dropTableSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button @click="dropIndexDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+  <el-dialog v-model="createTableDialog" title="创建数据表" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form
+        ref="formRef"
+        :model="dynamicValidateForm"
+        label-width="120px"
+        class="demo-dynamic"
+      >
+      </el-form>
+      <el-form-item
+        prop="newTableName"
+        label="表名"
+        :rules="{
+          required: true,
+          message: '表名不能为空',
+          trigger: 'blur',
+        }"
+      >
+        <el-input v-model="dynamicValidateForm.newTableName" />
+      </el-form-item>
+      <el-form-item
+        v-for="(domain, index) in dynamicValidateForm.domains"
+        :key="domain.key"
+        :label="'属性' + index"
+        :prop="'domains.' + index + '.attrName'"
+      >
+        <el-row>
+          <el-col :span='7'>
+            <el-text>属性名</el-text>
+          </el-col>
+          <el-col :span='17'>
+          <el-input v-model="domain.attrName" />
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span='7'>
+            <el-text>属性类型</el-text>
+          </el-col>
+          <el-col :span='17'>
+            <el-input v-model="domain.attrType" />
+          </el-col>
+        </el-row>
+        <el-button class="mt-2" @click.prevent="removeDomain(domain)">Delete</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="addDomain">新增属性</el-button>
+        <el-button @click="resetForm(formRef)">清空属性</el-button>
+        <el-button type="primary" @click="() => {createTableDialog = false; createTableSubmit(); handleDialogExit()}">创建</el-button>
+        <el-button @click="createTableDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
 
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
   <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
@@ -166,6 +233,8 @@
   <el-button class="3" :type='"primary"' @click="addIndexClick">添加索引</el-button>
   <el-button class="3" :type='"primary"' @click="dropIndexClick">删除索引</el-button>
   <el-button class="3" :type='"primary"' @click="showIndexClick">显示索引信息</el-button>
+  <el-button class="3" :type='"primary"' @click="createTableClick">创建表</el-button>
+  <el-button class="3" :type='"primary"' @click="dropTableClick">删除表</el-button>
   <div class="transaction-box">
     <el-switch
       v-model="transactionSwitch"
@@ -192,7 +261,7 @@
 import { reactive, ref } from 'vue'
 import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
-import { ElMessage } from 'element-plus'
+import { ElMessage, FormInstance } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
 
 const props = defineProps({
@@ -223,12 +292,33 @@ const addIndexDialog = ref(false)
 const dropIndexDialog = ref(false)
 const showIndexDialog = ref(false)
 const transactionSwitch = ref(false)
+const createTableDialog = ref(false)
+const dropTableDialog = ref(false)
 const insertUpdateData = reactive({
   datapair: []
 })
 const indexData = reactive({
   indexType: '',
   indexName: ''
+})
+const formRef = ref<FormInstance>()
+interface DomainItem {
+  key: number
+  attrName: string
+  attrType: string
+}
+const dynamicValidateForm = reactive<{
+  domains: DomainItem[]
+  newTableName: string
+}>({
+  domains: [
+    {
+      key: 1,
+      attrName: '',
+      attrType: ''
+    }
+  ],
+  newTableName: ''
 })
 const form = reactive({
   selectedTables: [],
@@ -262,6 +352,12 @@ async function dropIndexClick () {
 async function showIndexClick () {
   showIndexDialog.value = true
 }
+async function createTableClick () {
+  createTableDialog.value = true
+}
+async function dropTableClick () {
+  dropTableDialog.value = true
+}
 const handleDialogExit = async () => {
   form.selectedTables = []
   form.selectedAttrs = []
@@ -272,8 +368,18 @@ const handleDialogExit = async () => {
   tableData.attrs = []
   indexData.indexType = ''
   indexData.indexName = ''
+  createTableFormInit()
 }
-
+function createTableFormInit () {
+  dynamicValidateForm.domains = [
+    {
+      key: 1,
+      attrName: '',
+      attrType: ''
+    }
+  ]
+  dynamicValidateForm.newTableName = ''
+}
 const clearDataTable = async () => {
   tableData.dataList = []
 }
@@ -288,6 +394,24 @@ const onSingleTableChange = async () => {
   await getSingleAttrs()
 }
 
+const removeDomain = (item: DomainItem) => {
+  const index = dynamicValidateForm.domains.indexOf(item)
+  if (index !== -1) {
+    dynamicValidateForm.domains.splice(index, 1)
+  }
+}
+
+const addDomain = () => {
+  dynamicValidateForm.domains.push({
+    key: Date.now(),
+    attrName: '',
+    attrType: ''
+  })
+}
+const resetForm = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  formEl.resetFields()
+}
 const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
   curDatabase.value = current[0]['DATABASE()']
@@ -326,22 +450,6 @@ const getSingleAttrs = async () => {
     tableData.attrs.push(arrKey)
   }
 }
-
-// const mysqlConnector = new MysqlConnector({
-//   host: 'localhost',
-//   port: 3306,
-//   user: 'root',
-//   password: '123456',
-//   database: 'snake_db',
-//   flags: 'INTERACTIVE'
-// })
-// const mysqlConnector = new MysqlConnector({
-//   host: '10.242.68.143',
-//   port: 3306,
-//   user: 'root',
-//   password: 'snakedbms',
-//   database: 'university'
-// })
 
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
@@ -479,6 +587,32 @@ const showIndexSubmit = async () => {
     tableData.dataHeader = []
   } else {
     msgBox('显示索引成功', 'success')
+  }
+}
+const dropTableSubmit = async () => {
+  const res = await mysqlConnector.drop(form.singleTable)
+  await getAllTables()
+  if (res === 'error') {
+    msgBox('表删除失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('表删除成功', 'success')
+  }
+}
+const createTableSubmit = async () => {
+  console.log(dynamicValidateForm)
+  const newAttrs = dynamicValidateForm.domains.map((item) => {
+    return `${item.attrName} ${item.attrType}`
+  })
+  const res = await mysqlConnector.create(dynamicValidateForm.newTableName, newAttrs)
+  await getAllTables()
+  if (res === 'error') {
+    msgBox('表创建失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('表创建成功', 'success')
   }
 }
 </script>

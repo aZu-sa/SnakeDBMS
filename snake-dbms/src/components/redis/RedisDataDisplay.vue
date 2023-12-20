@@ -57,12 +57,12 @@ const handleInsert = () => {
 }
 
 const props = defineProps({
-  redisConnector: {
+  Connector: {
     type: Object,
     required: true
   }
 })
-const redisConnector = props.redisConnector as RedisConnector
+const redisConnector = props.Connector as RedisConnector
 const allData = ref(await redisConnector.autoGetAll())
 
 async function refresh () {
