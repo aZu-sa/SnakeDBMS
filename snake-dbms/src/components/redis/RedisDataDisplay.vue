@@ -1,12 +1,12 @@
 <template>
-  <el-table :data="allData" style="width: 450px" border max-height="500px">
+  <el-table :data="allData" style="width: 700px" border max-height="500px">
     <el-table-column prop="key" label="Key" width="100px" fixed/>
     <el-table-column prop="type" label="Type" width="100px"/>
     <el-table-column prop="ttl" label="TTL" width="75px"/>
-    <el-table-column prop="value" label="Value" width="250px"/>
+    <el-table-column prop="value" label="Value"/>
   </el-table>
 
-  <el-button @click="refresh">刷新</el-button>
+  <el-button @click="refresh" align="left">刷新</el-button>
 
   <el-tabs type="border-card">
     <el-tab-pane label="插入">
@@ -16,9 +16,9 @@
         </el-form-item>
         <el-form-item label="类型">
           <el-select>
-            <el-option>Option 1</el-option>
-            <el-option>Option 2</el-option>
-            <el-option>Option 3</el-option>
+            <el-option>string</el-option>
+            <el-option>hash</el-option>
+            <el-option>set</el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -40,12 +40,12 @@ import { RedisConnector } from '@/scripts/RedisConnector'
 import { ref } from 'vue'
 
 const props = defineProps({
-  redisConnector: {
+  Connector: {
     type: Object,
     required: true
   }
 })
-const redisConnector = props.redisConnector as RedisConnector
+const redisConnector = props.Connector as RedisConnector
 const allData = ref(await redisConnector.autoGetAll())
 
 async function refresh () {

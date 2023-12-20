@@ -95,12 +95,18 @@ const defaultRedisConnectionConfig: RedisConnectionConfig = {
 
 export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStringMethod, RedisHashMethod, RedisSetMethod, RedisExtraMethod {
   private client!: RedisClientType<any>
+  public label!: string
 
-  static async getInstance (config?: RedisConnectionConfig) {
+  static async getInstance (config?: RedisConnectionConfig, label?: string) {
     if (config === undefined) {
       config = defaultRedisConnectionConfig
     }
     const instance = Object.create(RedisConnector.prototype)
+    if (label === undefined) {
+      instance.label = `redis_${config.host}:${config.port}/${config.database}_${config.user}`
+    } else {
+      instance.label = label
+    }
     try {
       instance.client = await createClient({ url: toRedisConnectUrl(config) })
         .connect()

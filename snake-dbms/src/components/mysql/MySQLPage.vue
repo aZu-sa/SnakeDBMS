@@ -178,12 +178,14 @@
     <el-button class="3" :type='"success"' @click="transactionCommit" v-if="transactionSwitch">事务提交</el-button>
     <el-button class="3" :type='"primary"' @click="transactionRollback" v-if="transactionSwitch">事务回滚</el-button>
   </div>
-  <el-table :data="tableData.dataList" stripe align="center" max-height="250"><el-table-column v-for="(item, index) in tableData.dataHeader"
+  <div class="table-box">
+  <el-table :data="tableData.dataList" stripe align="center" max-height="400"><el-table-column v-for="(item, index) in tableData.dataHeader"
                                                                                                :key="index"
                                                                                                :label="item"
                                                                                                :prop="item"
                                                                                                :width="180"/>
   </el-table>
+  </div>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -191,6 +193,14 @@ import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 import { ElMessage } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
+
+const props = defineProps({
+  Connector: {
+    type: Object
+  }
+})
+const mysqlConnector = props.Connector as MysqlConnector
+
 const indexTypeOptions = [
   { value: 'INDEX', label: '普通索引' },
   { value: 'UNIQUE INDEX', label: '唯一索引' },
@@ -312,14 +322,22 @@ const getSingleAttrs = async () => {
   }
 }
 
-const mysqlConnector = new MysqlConnector({
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: '123456',
-  database: 'snake_db',
-  flags: 'INTERACTIVE'
-})
+// const mysqlConnector = new MysqlConnector({
+//   host: 'localhost',
+//   port: 3306,
+//   user: 'root',
+//   password: '123456',
+//   database: 'snake_db',
+//   flags: 'INTERACTIVE'
+// })
+// const mysqlConnector = new MysqlConnector({
+//   host: '10.242.68.143',
+//   port: 3306,
+//   user: 'root',
+//   password: 'snakedbms',
+//   database: 'university'
+// })
+
 function getDataHeader () {
   if (tableData.dataList.length === 0) return
   tableData.dataHeader = Object.keys(tableData.dataList[0])
@@ -475,5 +493,9 @@ const showIndexSubmit = async () => {
 
 .transaction-switch {
   margin-right: 5px;
+}
+
+.table-box {
+  text-align: center;
 }
 </style>

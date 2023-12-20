@@ -35,11 +35,17 @@ interface MysqlMethod {
 export class MysqlConnector implements MysqlMethod {
   private conn: Connection
   private query
+  public label!: string
 
-  public constructor (config: MysqlConnectionConfig) {
+  public constructor (config: MysqlConnectionConfig, label?: string) {
     this.conn = createConnection(config)
     this.conn.connect()
     this.query = promisify(this.conn.query).bind(this.conn)
+    if (label === undefined) {
+      this.label = `mysql_${config.host}:${config.port}/${config.database}_${config.user}`
+    } else {
+      this.label = label
+    }
   }
 
   private async execute (sql: string) {
