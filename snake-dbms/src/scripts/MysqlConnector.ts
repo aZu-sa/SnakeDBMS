@@ -188,9 +188,9 @@ export class MysqlConnector implements MysqlMethod {
     const sql = `CREATE ${indexType} ${indexName} ON ${on}(${attrSplicer(attrs)});`
     try {
       results = await this.execute(sql)
-      // results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = 'error'
     }
     return results
   }

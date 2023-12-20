@@ -95,10 +95,68 @@
       </el-form-item>
     </el-form>
   </el-dialog>
+  <el-dialog v-model="addIndexDialog" title="添加索引" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+      <el-form-item label="属性列" v-if="form.singleTable.length > 0">
+        <div class="filterBox filterBox-shadow">
+          <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
+          </el-checkbox-group>
+        </div>
+      </el-form-item>
+      <el-form-item label="索引类型">
+      <el-select v-model="indexData.indexType" class="m-2" placeholder="Select">
+        <el-option
+          v-for="item in indexTypeOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+      </el-form-item>
+      <el-form-item label="索引名称">
+        <el-input v-model="indexData.indexName"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {addIndexDialog = false; addIndexSubmit(); handleDialogExit()}">插入</el-button>
+        <el-button @click="addIndexDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+  <el-dialog v-model="dropIndexDialog" title="删除" draggable :before-close="handleDialogExit" :show-close="false">
+    <el-form :model="form">
+      <el-form-item label="数据表">
+        <div class="filterBox filterBox-shadow">
+          <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+          </el-radio-group>
+        </div>
+      </el-form-item>
+
+      <el-form-item label="索引名">
+        <el-input v-model="indexData.indexName"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="() => {dropIndexDialog = false; dropIndexSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button @click="dropIndexDialog = false; handleDialogExit()">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
   <el-button class="3" :type='"primary"' @click="selectClick">查询</el-button>
   <el-button class="3" :type='"primary"' @click="insertDialog = true">插入</el-button>
   <el-button class="3" :type='"primary"' @click="deleteClick">删除</el-button>
   <el-button class="3" :type='"primary"' @click="updateClick">更新</el-button>
+  <el-button class="3" :type='"primary"' @click="addIndexClick">添加索引</el-button>
+  <el-button class="3" :type='"primary"' @click="dropIndexClick">删除索引</el-button>
+
   <el-switch
     v-model="transactionSwitch"
     class="ml-2"
@@ -116,6 +174,12 @@ import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 import { ElMessage } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
+const indexTypeOptions = [
+  { value: 'INDEX', label: '普通索引' },
+  { value: 'UNIQUE INDEX', label: '唯一索引' },
+  { value: 'FULLTEXT INDEX', label: '全文索引' },
+  { value: 'SPATIAL INDEX', label: '空间索引' }
+]
 const tableData: AttributeAddableObject = reactive({
   dataList: [],
   dataHeader: [],
@@ -127,11 +191,16 @@ const selectDialog = ref(false)
 const deleteDialog = ref(false)
 const updateDialog = ref(false)
 const insertDialog = ref(false)
-const transactionSwitch = ref()
+const addIndexDialog = ref(false)
+const dropIndexDialog = ref(false)
+const transactionSwitch = ref(false)
 const insertUpdateData = reactive({
   datapair: []
 })
-
+const indexData = reactive({
+  indexType: '',
+  indexName: ''
+})
 const form = reactive({
   selectedTables: [],
   selectedAttrs: [],
@@ -155,7 +224,12 @@ async function deleteClick () {
 async function updateClick () {
   updateDialog.value = true
 }
-
+async function addIndexClick () {
+  addIndexDialog.value = true
+}
+async function dropIndexClick () {
+  dropIndexDialog.value = true
+}
 const handleDialogExit = async () => {
   form.selectedTables = []
   form.selectedAttrs = []
@@ -164,6 +238,8 @@ const handleDialogExit = async () => {
   form.singleTable = ''
   insertUpdateData.datapair = []
   tableData.attrs = []
+  indexData.indexType = ''
+  indexData.indexName = ''
 }
 
 const onSelectedTablesChange = async () => {
@@ -323,6 +399,31 @@ const transactionRollback = async () => {
     tableData.dataHeader = []
   } else {
     msgBox('事务更改成功', 'success')
+  }
+}
+function removePrefix (attr: Array<string>) {
+  return attr.map((item) => {
+    return item.split('.')[1]
+  })
+}
+const addIndexSubmit = async () => {
+  const res = await mysqlConnector.createIndex(indexData.indexType, indexData.indexName, form.singleTable, removePrefix(form.selectedAttrs))
+  if (res === 'error') {
+    msgBox('添加索引失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('添加索引成功', 'success')
+  }
+}
+const dropIndexSubmit = async () => {
+  const res = await mysqlConnector.dropIndex(indexData.indexName, form.singleTable)
+  if (res === 'error') {
+    msgBox('删除索引失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('删除索引成功', 'success')
   }
 }
 </script>
