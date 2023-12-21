@@ -21,7 +21,7 @@
     <el-form-item label="Password:">
       <el-input v-model="ConnectionForm.password"/>
     </el-form-item>
-    <el-form-item label="Database:">
+    <el-form-item label="Database:" required>
       <el-input v-model="ConnectionForm.database" :placeholder="defaultDatabaseDisplay()"/>
     </el-form-item>
   </el-form>
