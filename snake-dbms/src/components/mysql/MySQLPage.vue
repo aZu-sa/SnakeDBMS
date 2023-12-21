@@ -411,6 +411,7 @@ const addDomain = () => {
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   formEl.resetFields()
+  createTableFormInit()
 }
 const getCurDatabase = async () => {
   const current = await mysqlConnector.currentDatabase()
