@@ -3,7 +3,7 @@ import { attrSplicer, conditionSplicer, valuesSplicer } from '@/scripts/Splicer'
 import { promisify } from 'util'
 import { SpeedRatio } from '@/scripts/SpeedRatio'
 
-interface MysqlConnectionConfig {
+export interface MysqlConnectionConfig {
   host?: string,
   port?: number,
   user?: string,
@@ -53,20 +53,23 @@ export class MysqlConnector implements MysqlMethod {
   }
 
   private asyncExecute (sql: string, speedRatio: SpeedRatio) {
-    const query = this.conn.query('SELECT * FROM sell NATURAL JOIN wholesale')
+    const query = this.conn.query(sql)
+    const resultGroup: any[] = []
     query.on('error', function (err) {
-      console.log('ERROR')
+      // console.log('ERROR')
       console.log(err)
     }).on('fields', function (fields) {
-      console.log('FIELDS')
+      // console.log('FIELDS')
       console.log(fields)
       speedRatio.start()
     }).on('result', function (row) {
+      resultGroup.push(row)
       speedRatio.add()
     }).on('end', function () {
       speedRatio.end()
-      console.log(speedRatio.getRatioCounts())
+      // console.log(speedRatio.getRatioCounts())
     })
+    return resultGroup
   }
 
   /**
