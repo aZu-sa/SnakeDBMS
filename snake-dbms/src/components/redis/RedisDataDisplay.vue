@@ -1,12 +1,12 @@
 <template>
-  <el-table :data="allData" style="width: 600px" border max-height="500px">
+  <el-table :data="allData" style="width: 600px" border max-height="450px">
     <el-table-column prop="key" label="Key" width="100px" fixed />
     <el-table-column prop="type" label="Type" width="100px" />
     <el-table-column prop="ttl" label="TTL" width="75px" />
-    <el-table-column prop="value" label="Value" />
+    <el-table-column prop="value" label="Value"/>
   </el-table>
 
-  <el-button @click="refresh" align="left">刷新</el-button>
+  <el-button @click="refresh">刷新</el-button>
 
   <el-tabs type="border-card">
     <el-tab-pane label="插入/修改">
@@ -44,7 +44,7 @@
           <el-input v-model="changeTimeForm.time" placeholder="若留空，则永不过期" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">修改</el-button>
+          <el-button type="primary" :onclick="handleExpire">修改</el-button>
         </el-form-item>
       </el-form>
     </el-tab-pane>
@@ -53,17 +53,17 @@
         <el-form-item label="删除类型" required>
           <el-radio-group v-model="deleteForm.type">
             <el-radio label="key">键</el-radio>
-            <el-radio label="filled">(Hash)域</el-radio>
+            <el-radio label="field">(Hash)域</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="键" required>
           <el-input v-model="deleteForm.key" />
         </el-form-item>
-        <el-form-item label="域" v-if="deleteForm.type === 'filled'" required>
-          <el-input v-model="deleteForm.filled" />
+        <el-form-item label="域" v-if="deleteForm.type === 'field'" required>
+          <el-input v-model="deleteForm.field" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">删除</el-button>
+          <el-button type="primary" :onclick="handleDelete">删除</el-button>
         </el-form-item>
       </el-form>
     </el-tab-pane>
@@ -73,6 +73,33 @@
 <script lang="ts" setup>
 import { RedisConnector } from '@/scripts/RedisConnector'
 import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
+
+const props = defineProps({
+  Connector: {
+    type: Object,
+    required: true
+  }
+})
+const redisConnector = props.Connector as RedisConnector
+const allData = ref(await redisConnector.autoGetAll())
+
+async function refresh () {
+  allData.value = await redisConnector.autoGetAll()
+}
+
+async function refreshTimely () {
+  await refresh()
+  setTimeout(refreshTimely, 750)
+}
+refreshTimely()
+
+function showMessage (msg: string, type: any) {
+  ElMessage({
+    message: msg,
+    type: type
+  })
+}
 
 const insertForm = ref({
   key: '',
@@ -90,25 +117,80 @@ const changeTimeForm = ref({
 const deleteForm = ref({
   type: 'key',
   key: '',
-  filled: ''
+  field: ''
 })
 
-const handleInsert = () => {
-  console.log(insertForm.value)
+async function handleInsert () {
+  const form = insertForm.value
+  let re
+  try {
+    if (form.type === 'string') {
+      re = await redisConnector.set(form.key, form.value) as string
+    } else if (form.type === 'set') {
+      re = await redisConnector.sAdd(form.key, form.value)
+    } else {
+      re = await redisConnector.hSet(form.key, form.field, form.value)
+    }
+    if (form.time !== '') {
+      await redisConnector.expire(form.key, Number(form.time))
+    }
+  } catch (_) {
+    showMessage('插入失败!', 'error')
+    return
+  }
+  if (typeof re === 'string' && re !== 'OK') {
+    showMessage('插入失败!', 'warning')
+  } else {
+    showMessage('插入成功!', 'success')
+  }
+  await refresh()
 }
 
-const props = defineProps({
-  Connector: {
-    type: Object,
-    required: true
+async function handleExpire () {
+  const form = changeTimeForm.value
+  let re
+  try {
+    if (form.key !== '') {
+      if (form.time === '') {
+        re = await redisConnector.persist(form.key)
+      } else {
+        re = await redisConnector.expire(form.key, Number(form.time))
+      }
+    }
+  } catch (_) {
+    showMessage('修改过期时间失败!', 'error')
+    return
   }
-})
-const redisConnector = props.Connector as RedisConnector
-const allData = ref(await redisConnector.autoGetAll())
+  if (re !== true) {
+    showMessage('修改过期时间失败!', 'warning')
+  } else {
+    showMessage('修改过期时间成功!', 'success')
+  }
+  await refresh()
+}
 
-async function refresh () {
-  allData.value = await redisConnector.autoGetAll()
+async function handleDelete () {
+  const form = deleteForm.value
+  let re
+  try {
+    if (form.type === 'field') {
+      re = await redisConnector.hDel(form.key, form.field)
+    } else {
+      re = await redisConnector.del(form.key)
+    }
+  } catch (_) {
+    showMessage('删除失败!', 'error')
+    return
+  }
+  if (re !== 1) {
+    showMessage('删除失败!', 'warning')
+  } else {
+    showMessage('删除成功!', 'success')
+  }
+  await refresh()
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+
+</style>

@@ -46,6 +46,8 @@ interface RedisKeyMethod {
 
   expire(key: string, ex: number): Promise<any>
 
+  persist(key: string): Promise<any>
+
   ttl(key: string): Promise<any>
 }
 
@@ -157,6 +159,10 @@ export class RedisConnector implements RedisBaseMethod, RedisKeyMethod, RedisStr
 
   public async keys (pattern: string) {
     return await this.client.keys(pattern)
+  }
+
+  public async persist (key: string) {
+    return await this.client.persist(key)
   }
 
   public async ttl (key: string) {
