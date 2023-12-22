@@ -235,6 +235,7 @@
   <el-button class="3" :type='"primary"' @click="showIndexClick">显示索引信息</el-button>
   <el-button class="3" :type='"primary"' @click="createTableClick">创建表</el-button>
   <el-button class="3" :type='"primary"' @click="dropTableClick">删除表</el-button>
+  <el-button class="3" :type='"primary"' @click="showProfilesClick">查看性能</el-button>
   <div class="transaction-box">
     <el-switch
       v-model="transactionSwitch"
@@ -270,7 +271,6 @@ const props = defineProps({
   }
 })
 const mysqlConnector = props.Connector as MysqlConnector
-
 const indexTypeOptions = [
   { value: 'INDEX', label: '普通索引' },
   { value: 'UNIQUE INDEX', label: '唯一索引' },
@@ -357,6 +357,10 @@ async function createTableClick () {
 }
 async function dropTableClick () {
   dropTableDialog.value = true
+}
+async function showProfilesClick () {
+  await showProfiles()
+  await handleDialogExit()
 }
 const handleDialogExit = async () => {
   form.selectedTables = []
@@ -492,6 +496,7 @@ const searchSubmit = async () => {
 };
 (async () => {
   await getAllTables()
+  await mysqlConnector.setProfilesOn()
 })()
 const deleteSubmit = async () => {
   const res = await mysqlConnector.delete(form.singleTable, form.conditions)
@@ -614,6 +619,17 @@ const createTableSubmit = async () => {
     tableData.dataHeader = []
   } else {
     msgBox('表创建成功', 'success')
+  }
+}
+const showProfiles = async () => {
+  tableData.dataList = await mysqlConnector.showProfiles()
+  getDataHeader()
+  if (tableData.dataList[0] === 'error') {
+    msgBox('性能查询失败（sql语法错误或网络未连接）!', 'error')
+    tableData.dataList = []
+    tableData.dataHeader = []
+  } else {
+    msgBox('性能查询成功', 'success')
   }
 }
 </script>

@@ -25,7 +25,7 @@ interface MysqlMethod {
   rollback(): Promise<any>
   commit(): Promise<any>
   createUser(userName: string, password: string):Promise<any>
-  showProfiles(): Promise<any>
+  showProfiles(): Promise<Array<any>>
   showTables(): Promise<any>
   currentDatabase(): Promise<any>
   getTableAttrs(table: string): Promise<Array<any>>
@@ -283,13 +283,14 @@ export class MysqlConnector implements MysqlMethod {
     return results
   }
 
-  public async showProfiles (): Promise<any> {
-    let results: any
+  public async showProfiles (): Promise<Array<any>> {
+    let results: Array<any> = []
     try {
-      results = await this.execute('SHOW PROFILES;')
-      // results = JSON.parse(JSON.stringify(results))
+      results = await this.execute('show profiles;') as Array<any>
+      results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
     }
     return results
   }
@@ -339,6 +340,17 @@ export class MysqlConnector implements MysqlMethod {
     } catch (e) {
       console.log(e)
       results = ['error']
+    }
+    return results
+  }
+
+  public async setProfilesOn () {
+    let results: any
+    try {
+      results = await this.execute('SET profiling = 1;')
+      results = JSON.parse(JSON.stringify(results))
+    } catch (e) {
+      console.log(e)
     }
     return results
   }
