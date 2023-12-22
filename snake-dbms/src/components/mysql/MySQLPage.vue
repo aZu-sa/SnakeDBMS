@@ -43,7 +43,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit(); clearDataTable();}">删除</el-button>
-        <el-button @click="deleteDialog = false; handleDialogExit()">取消</el-button>
+        <el-button @click="() => {deleteDialog = false; handleDialogExit();}">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -169,7 +169,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="() => {dropTableDialog = false; dropTableSubmit(); handleDialogExit()}">删除</el-button>
-        <el-button @click="dropIndexDialog = false; handleDialogExit()">取消</el-button>
+        <el-button @click="dropTableDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -185,11 +185,6 @@
       <el-form-item
         prop="newTableName"
         label="表名"
-        :rules="{
-          required: true,
-          message: '表名不能为空',
-          trigger: 'blur',
-        }"
       >
         <el-input v-model="dynamicValidateForm.newTableName" />
       </el-form-item>
@@ -257,6 +252,7 @@
                                                                                                :width="180"/>
   </el-table>
   </div>
+  <SpeedDisplay></SpeedDisplay>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -264,6 +260,7 @@ import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 import { ElMessage, FormInstance } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
+import SpeedDisplay from '@/components/SpeedDisplay.vue'
 
 const props = defineProps({
   Connector: {
@@ -611,7 +608,14 @@ const createTableSubmit = async () => {
   const newAttrs = dynamicValidateForm.domains.map((item) => {
     return `${item.attrName} ${item.attrType}`
   })
-  const res = await mysqlConnector.create(dynamicValidateForm.newTableName, newAttrs)
+  var attrs = []
+  for (var attr of newAttrs) {
+    if (attr === ' ') {
+      continue
+    }
+    attrs.push(attr)
+  }
+  const res = await mysqlConnector.create(dynamicValidateForm.newTableName, attrs)
   await getAllTables()
   if (res === 'error') {
     msgBox('表创建失败（sql语法错误或网络未连接）!', 'error')

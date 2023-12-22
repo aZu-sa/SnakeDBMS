@@ -48,11 +48,15 @@ export class MysqlConnector implements MysqlMethod {
     }
   }
 
+  public async close () {
+    this.conn.end()
+  }
+
   private async execute (sql: string) {
     return this.query(sql)
   }
 
-  private asyncExecute (sql: string, speedRatio: SpeedRatio) {
+  private async Execute (sql: string, speedRatio: SpeedRatio) {
     const query = this.conn.query(sql)
     const resultGroup: any[] = []
     query.on('error', function (err) {
@@ -130,6 +134,9 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       results = 'error'
       console.log(e)
@@ -152,6 +159,9 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       results = 'error'
       console.log(e)
@@ -169,6 +179,9 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       results = 'error'
       console.log(e)
@@ -185,8 +198,12 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -199,6 +216,9 @@ export class MysqlConnector implements MysqlMethod {
     const sql = `CREATE ${indexType} ${indexName} ON ${on}(${attrSplicer(attrs)});`
     try {
       results = await this.execute(sql)
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       console.log(e)
       results = 'error'
@@ -215,8 +235,12 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute(sql)
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -229,9 +253,12 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute('START TRANSACTION;')
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
-      results = 'error'
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -244,9 +271,12 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute('ROLLBACK;')
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
-      results = 'error'
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -259,9 +289,12 @@ export class MysqlConnector implements MysqlMethod {
     try {
       results = await this.execute('COMMIT;')
       // results = JSON.parse(JSON.stringify(results))
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
-      results = 'error'
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -277,8 +310,12 @@ export class MysqlConnector implements MysqlMethod {
       results = await this.execute(sql)
       sql = `GRANT ALL PRIVILEGES ON *.* TO '${userName}'@'%';`
       results = await this.execute(sql)
+      if (results.Error !== undefined) {
+        return 'error'
+      }
     } catch (e) {
       console.log(e)
+      results = 'error'
     }
     return results
   }
@@ -302,6 +339,7 @@ export class MysqlConnector implements MysqlMethod {
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
     }
     return results
   }
@@ -313,6 +351,7 @@ export class MysqlConnector implements MysqlMethod {
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
     }
     return results
   }
@@ -351,6 +390,7 @@ export class MysqlConnector implements MysqlMethod {
       results = JSON.parse(JSON.stringify(results))
     } catch (e) {
       console.log(e)
+      results = ['error']
     }
     return results
   }

@@ -45,6 +45,10 @@ export default createStore({
     setFlag: (state, index) => {
       console.log(`set ${index}`)
       state.AsideVisibleFlag[index].value = true
+    },
+    removeDatabase: (state, index) => {
+      state.DatabaseConnectionPool.splice(index, 1)
+      state.AsideVisibleFlag.splice(index, 1)
     }
   },
   actions: {
