@@ -28,7 +28,7 @@ export default createStore({
         state.DatabaseConnectionPool = []
       }
       if (databaseConnector instanceof MysqlConnector) {
-        state.DatabaseConnectionPool.push({ type: 'mysql', connection: databaseConnector, label: 'mysql' })
+        state.DatabaseConnectionPool.push({ type: 'mysql', connection: databaseConnector, label: databaseConnector.label })
       } else {
         state.DatabaseConnectionPool.push({ type: 'redis', connection: databaseConnector, label: databaseConnector.label })
       }

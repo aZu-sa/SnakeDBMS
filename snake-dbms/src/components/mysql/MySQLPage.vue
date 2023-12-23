@@ -252,7 +252,6 @@
                                                                                                :width="180"/>
   </el-table>
   </div>
-  <SpeedDisplay></SpeedDisplay>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
@@ -260,7 +259,6 @@ import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
 import { ElMessage, FormInstance } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
-import SpeedDisplay from '@/components/SpeedDisplay.vue'
 
 const props = defineProps({
   Connector: {
