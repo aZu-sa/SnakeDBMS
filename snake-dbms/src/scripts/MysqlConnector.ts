@@ -13,7 +13,7 @@ export interface MysqlConnectionConfig {
 }
 
 interface MysqlMethod {
-  select(what: string | Array<string>, from: string, where?: string): Promise<Array<any>>
+  select(what: string | Array<string>, from: string, rowFrom: number, rowTo: number, where?: string): Promise<Array<any>>
   insert(into: string, values: Array<Array<string>>, attr?: string | Array<string>): Promise<any>
   delete(from: string, where: string): Promise<any>
   update(table: string, set: Array<string>, where?: string): Promise<any>
@@ -77,15 +77,16 @@ export class MysqlConnector implements MysqlMethod {
   }
 
   /**
-   * SELECT {what} FROM {from} [WHERE {where}]
+   * SELECT {what} FROM {from} [WHERE {where}] Limit
    */
-  public async select (what: string | Array<string>, from: string, where?: string): Promise<Array<any>> {
+  public async select (what: string | Array<string>, from: string, rowFrom: number, limit: number, where?: string): Promise<Array<any>> {
     let results: Array<any> = []
     let sql = `SELECT ${attrSplicer(what)} FROM ${from}`
     if (where !== undefined && where.length > 0) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
-    sql += ';'
+    sql = `${sql} LIMIT ${rowFrom}, ${limit};`
+    // sql += ';'
     console.log(sql)
     try {
       results = await this.execute(sql) as Array<any>

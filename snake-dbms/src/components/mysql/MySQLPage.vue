@@ -21,6 +21,12 @@
       <el-form-item label="筛选条件">
         <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
       </el-form-item>
+      <el-form-item label="起始行号">
+        <el-input v-model="form.rowFrom" :placeholder="'0'" />
+      </el-form-item>
+      <el-form-item label="行数">
+        <el-input v-model="form.limit" :placeholder="'1000'" />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="() => {selectDialog = false; searchSubmit(); handleDialogExit()}">查询</el-button>
         <el-button @click="selectDialog = false; handleDialogExit()">取消</el-button>
@@ -320,7 +326,9 @@ const form = reactive({
   selectedAttrs: [],
   conditions: '',
   joinMode: '',
-  singleTable: ''
+  singleTable: '',
+  rowFrom: 0,
+  limit: 1000
 })
 function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success' | 'warning' | 'error' | 'info', unknown>) {
   ElMessage({
@@ -368,6 +376,8 @@ const handleDialogExit = async () => {
   indexData.indexType = ''
   indexData.indexName = ''
   createTableFormInit()
+  form.rowFrom = 0
+  form.limit = 1000
 }
 function createTableFormInit () {
   dynamicValidateForm.domains = [
@@ -476,9 +486,9 @@ const insertSubmit = async () => {
 
 const searchSubmit = async () => {
   if (form.selectedTables.length > 1) {
-    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.joinMode, form.conditions)
+    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.joinMode, form.rowFrom, form.limit, form.conditions)
   } else {
-    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.selectedTables[0], form.conditions)
+    tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.selectedTables[0], form.rowFrom, form.limit, form.conditions)
   }
   getDataHeader()
   if (tableData.dataList[0] === 'error') {

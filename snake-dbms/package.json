@@ -15,7 +15,6 @@
   "dependencies": {
     "@types/mysql": "^2.15.24",
     "core-js": "^3.8.3",
-    "echarts": "^5.4.3",
     "element-plus": "^2.4.4",
     "mysql": "^2.18.1",
     "redis": "^4.6.11",
@@ -23,7 +22,6 @@
     "ts-loader": "~8.2.0",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
-    "vue-echarts": "^6.6.5",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0",
     "webpack": "^5.75.0"
