@@ -1,34 +1,39 @@
 <template>
-    <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit" :show-close="false">
+  <el-dialog v-model="selectDialog" title="查询" draggable :before-close="handleDialogExit" :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedTables">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSelectedTablesChange">{{ key }}</el-checkbox-button>
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                                @change="onSelectedTablesChange">{{ key }}
+            </el-checkbox-button>
           </el-checkbox-group>
         </div>
       </el-form-item>
       <el-form-item label="联表方式" v-if="form.selectedTables.length > 1">
-        <el-input v-model="form.joinMode" :placeholder="'如：table_A a LEFT JOIN table_B b on a.id=b.id'" />
+        <el-input v-model="form.joinMode" :placeholder="'如：table_A a LEFT JOIN table_B b on a.id=b.id'"/>
       </el-form-item>
       <el-form-item label="属性列" v-if="form.selectedTables.length > 0">
         <div class="filterBox filterBox-shadow">
           <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key"
+                                @change="console.log(form.selectedAttrs)">{{ key }}
+            </el-checkbox-button>
           </el-checkbox-group>
         </div>
       </el-form-item>
       <el-form-item label="筛选条件">
-        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'"/>
       </el-form-item>
       <el-form-item label="起始行号">
-        <el-input v-model="form.rowFrom" :placeholder="'0'" />
+        <el-input v-model="form.rowFrom" :placeholder="'0'"/>
       </el-form-item>
       <el-form-item label="行数">
-        <el-input v-model="form.limit" :placeholder="'1000'" />
+        <el-input v-model="form.limit" :placeholder="'1000'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {selectDialog = false; searchSubmit(); handleDialogExit()}">查询</el-button>
+        <el-button type="primary" @click="() => {selectDialog = false; searchSubmit(); handleDialogExit()}">查询
+        </el-button>
         <el-button @click="selectDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -39,16 +44,20 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
 
       <el-form-item label="筛选条件">
-        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit(); clearDataTable();}">删除</el-button>
+        <el-button type="primary"
+                   @click="() => {deleteDialog = false; deleteSubmit(); handleDialogExit(); clearDataTable();}">删除
+        </el-button>
         <el-button @click="() => {deleteDialog = false; handleDialogExit();}">取消</el-button>
       </el-form-item>
     </el-form>
@@ -60,18 +69,22 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
-      <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
-          <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
+      <el-form-item v-for="key in tableData.attrs" :key="key" :label="key">
+        <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
       </el-form-item>
       <el-form-item label="筛选条件">
-        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'" />
+        <el-input v-model="form.conditions" :placeholder="'如：id=1 AND ...'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {updateDialog = false; updateSubmit(); handleDialogExit(); clearDataTable();}">更新</el-button>
+        <el-button type="primary"
+                   @click="() => {updateDialog = false; updateSubmit(); handleDialogExit(); clearDataTable();}">更新
+        </el-button>
         <el-button @click="updateDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -81,15 +94,19 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
-      <el-form-item v-for = "key in tableData.attrs" :key="key" :label="key">
-          <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
+      <el-form-item v-for="key in tableData.attrs" :key="key" :label="key">
+        <el-input v-model="insertUpdateData.datapair[key]" placeholder="若为字符串，请加入引号，如'snake'"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {insertDialog = false; insertSubmit(); handleDialogExit(); clearDataTable();}">插入</el-button>
+        <el-button type="primary"
+                   @click="() => {insertDialog = false; insertSubmit(); handleDialogExit(); clearDataTable();}">插入
+        </el-button>
         <el-button @click="insertDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -99,32 +116,37 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
       <el-form-item label="属性列" v-if="form.singleTable.length > 0">
         <div class="filterBox filterBox-shadow">
           <el-checkbox-group class="checkboxGroup" tag="span" v-model="form.selectedAttrs">
-            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key" @change="console.log(form.selectedAttrs)">{{ key }}</el-checkbox-button>
+            <el-checkbox-button class="checkboxButton" v-for="key in tableData.attrs" :key="key" :label="key"
+                                @change="console.log(form.selectedAttrs)">{{ key }}
+            </el-checkbox-button>
           </el-checkbox-group>
         </div>
       </el-form-item>
       <el-form-item label="索引类型">
-      <el-select v-model="indexData.indexType" class="m-2" placeholder="Select">
-        <el-option
-          v-for="item in indexTypeOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
+        <el-select v-model="indexData.indexType" class="m-2" placeholder="Select">
+          <el-option
+            v-for="item in indexTypeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="索引名称">
         <el-input v-model="indexData.indexName"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {addIndexDialog = false; addIndexSubmit(); handleDialogExit()}">添加</el-button>
+        <el-button type="primary" @click="() => {addIndexDialog = false; addIndexSubmit(); handleDialogExit()}">添加
+        </el-button>
         <el-button @click="addIndexDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -134,7 +156,9 @@
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
@@ -143,43 +167,53 @@
         <el-input v-model="indexData.indexName"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {dropIndexDialog = false; dropIndexSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button type="primary" @click="() => {dropIndexDialog = false; dropIndexSubmit(); handleDialogExit()}">删除
+        </el-button>
         <el-button @click="dropIndexDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-dialog v-model="showIndexDialog" title="显示索引信息" draggable :before-close="handleDialogExit" :show-close="false">
+  <el-dialog v-model="showIndexDialog" title="显示索引信息" draggable :before-close="handleDialogExit"
+             :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="() => {showIndexDialog = false; showIndexSubmit(); handleDialogExit()}">显示</el-button>
+        <el-button type="primary" @click="() => {showIndexDialog = false; showIndexSubmit(); handleDialogExit()}">显示
+        </el-button>
         <el-button @click="showIndexDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-dialog v-model="dropTableDialog" title="删除数据表" draggable :before-close="handleDialogExit" :show-close="false">
+  <el-dialog v-model="dropTableDialog" title="删除数据表" draggable :before-close="handleDialogExit"
+             :show-close="false">
     <el-form :model="form">
       <el-form-item label="数据表">
         <div class="filterBox filterBox-shadow">
           <el-radio-group class="checkboxGroup" tag="span" v-model="form.singleTable">
-            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key" @change="onSingleTableChange">{{ key }}</el-radio-button>
+            <el-radio-button class="checkboxButton" v-for="key in tableData.tables" :key="key" :label="key"
+                             @change="onSingleTableChange">{{ key }}
+            </el-radio-button>
           </el-radio-group>
         </div>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="() => {dropTableDialog = false; dropTableSubmit(); handleDialogExit()}">删除</el-button>
+        <el-button type="primary" @click="() => {dropTableDialog = false; dropTableSubmit(); handleDialogExit()}">删除
+        </el-button>
         <el-button @click="dropTableDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
-  <el-dialog v-model="createTableDialog" title="创建数据表" draggable :before-close="handleDialogExit" :show-close="false">
+  <el-dialog v-model="createTableDialog" title="创建数据表" draggable :before-close="handleDialogExit"
+             :show-close="false">
     <el-form :model="form">
       <el-form
         ref="formRef"
@@ -192,7 +226,7 @@
         prop="newTableName"
         label="表名"
       >
-        <el-input v-model="dynamicValidateForm.newTableName" />
+        <el-input v-model="dynamicValidateForm.newTableName"/>
       </el-form-item>
       <el-form-item
         v-for="(domain, index) in dynamicValidateForm.domains"
@@ -205,7 +239,7 @@
             <el-text>属性名</el-text>
           </el-col>
           <el-col :span='17'>
-          <el-input v-model="domain.attrName" />
+            <el-input v-model="domain.attrName"/>
           </el-col>
         </el-row>
         <el-row>
@@ -213,7 +247,7 @@
             <el-text>属性类型</el-text>
           </el-col>
           <el-col :span='17'>
-            <el-input v-model="domain.attrType" />
+            <el-input v-model="domain.attrType"/>
           </el-col>
         </el-row>
         <el-button class="mt-2" @click.prevent="removeDomain(domain)">Delete</el-button>
@@ -221,7 +255,9 @@
       <el-form-item>
         <el-button @click="addDomain">新增属性</el-button>
         <el-button @click="resetForm(formRef)">清空属性</el-button>
-        <el-button type="primary" @click="() => {createTableDialog = false; createTableSubmit(); handleDialogExit()}">创建</el-button>
+        <el-button type="primary" @click="() => {createTableDialog = false; createTableSubmit(); handleDialogExit()}">
+          创建
+        </el-button>
         <el-button @click="createTableDialog = false; handleDialogExit()">取消</el-button>
       </el-form-item>
     </el-form>
@@ -251,20 +287,32 @@
     <el-button class="3" :type='"primary"' @click="transactionRollback" v-if="transactionSwitch">事务回滚</el-button>
   </div>
   <div class="table-box">
-  <el-table :data="tableData.dataList" stripe align="center" max-height="400"><el-table-column v-for="(item, index) in tableData.dataHeader"
-                                                                                               :key="index"
-                                                                                               :label="item"
-                                                                                               :prop="item"
-                                                                                               :width="180"/>
-  </el-table>
+    <el-table :data="tableData.dataList" stripe align="center" max-height="400">
+      <el-table-column v-for="(item, index) in tableData.dataHeader"
+                       :key="index"
+                       :label="item"
+                       :prop="item"
+                       :width="180"/>
+    </el-table>
   </div>
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { AttributeAddableObject } from '@/scripts/AttributeAddableObject'
 import { MysqlConnector } from '@/scripts/MysqlConnector'
-import { ElMessage, FormInstance } from 'element-plus'
+import { ElMessage, FormInstance, ElLoading } from 'element-plus'
 import { EpPropMergeType } from 'element-plus/es/utils'
+
+const openFullScreenLoading = () => {
+  const loading = ElLoading.service({
+    lock: true,
+    text: 'Loading'
+  })
+}
+const closeFullScreenLoading = () => {
+  const loading = ElLoading.service()
+  loading.close()
+}
 
 const props = defineProps({
   Connector: {
@@ -303,11 +351,13 @@ const indexData = reactive({
   indexName: ''
 })
 const formRef = ref<FormInstance>()
+
 interface DomainItem {
   key: number
   attrName: string
   attrType: string
 }
+
 const dynamicValidateForm = reactive<{
   domains: DomainItem[]
   newTableName: string
@@ -330,6 +380,7 @@ const form = reactive({
   rowFrom: 0,
   limit: 1000
 })
+
 function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success' | 'warning' | 'error' | 'info', unknown>) {
   ElMessage({
     showClose: true,
@@ -337,34 +388,44 @@ function msgBox (msg: string, type: EpPropMergeType<StringConstructor, 'success'
     type: type
   })
 }
+
 async function selectClick () {
   selectDialog.value = true
 }
+
 async function deleteClick () {
   deleteDialog.value = true
 }
+
 async function updateClick () {
   updateDialog.value = true
 }
+
 async function addIndexClick () {
   addIndexDialog.value = true
 }
+
 async function dropIndexClick () {
   dropIndexDialog.value = true
 }
+
 async function showIndexClick () {
   showIndexDialog.value = true
 }
+
 async function createTableClick () {
   createTableDialog.value = true
 }
+
 async function dropTableClick () {
   dropTableDialog.value = true
 }
+
 async function showProfilesClick () {
   await showProfiles()
   await handleDialogExit()
 }
+
 const handleDialogExit = async () => {
   form.selectedTables = []
   form.selectedAttrs = []
@@ -379,6 +440,7 @@ const handleDialogExit = async () => {
   form.rowFrom = 0
   form.limit = 1000
 }
+
 function createTableFormInit () {
   dynamicValidateForm.domains = [
     {
@@ -389,6 +451,7 @@ function createTableFormInit () {
   ]
   dynamicValidateForm.newTableName = ''
 }
+
 const clearDataTable = async () => {
   tableData.dataList = []
 }
@@ -440,7 +503,7 @@ const getAllAttrs = async () => {
     const table = form.selectedTables[key] as string
     const res = await mysqlConnector.getTableAttrs(table)
     let arr = []
-    arr = res.map((item) : string => {
+    arr = res.map((item): string => {
       return table + '.' + item.Field
     })
     for (const arrKey of arr) {
@@ -453,7 +516,7 @@ const getSingleAttrs = async () => {
   tableData.attrs = []
   const res = await mysqlConnector.getTableAttrs(form.singleTable)
   let arr = []
-  arr = res.map((item) : string => {
+  arr = res.map((item): string => {
     return form.singleTable + '.' + item.Field
   })
   for (const arrKey of arr) {
@@ -467,7 +530,7 @@ function getDataHeader () {
 }
 
 const insertSubmit = async () => {
-  var values:Array<Array<string>> = []
+  var values: Array<Array<string>> = []
   values.push(Object.values(insertUpdateData.datapair))
   console.log(values)
   console.log(Object.keys(insertUpdateData.datapair))
@@ -485,6 +548,7 @@ const insertSubmit = async () => {
 }
 
 const searchSubmit = async () => {
+  openFullScreenLoading()
   if (form.selectedTables.length > 1) {
     tableData.dataList = await mysqlConnector.select(form.selectedAttrs, form.joinMode, form.rowFrom, form.limit, form.conditions)
   } else {
@@ -498,6 +562,7 @@ const searchSubmit = async () => {
   } else {
     msgBox('查询成功', 'success')
   }
+  closeFullScreenLoading()
 };
 (async () => {
   await getAllTables()
@@ -514,7 +579,7 @@ const deleteSubmit = async () => {
   }
 }
 const updateSubmit = async () => {
-  var sets:Array<string> = []
+  var sets: Array<string> = []
   for (const key in insertUpdateData.datapair) {
     sets.push(key + '=' + insertUpdateData.datapair[key])
   }
@@ -564,11 +629,13 @@ const transactionRollback = async () => {
     msgBox('事务更改成功', 'success')
   }
 }
+
 function removePrefix (attr: Array<string>) {
   return attr.map((item) => {
     return item.split('.')[1]
   })
 }
+
 const addIndexSubmit = async () => {
   const res = await mysqlConnector.createIndex(indexData.indexType, indexData.indexName, form.singleTable, removePrefix(form.selectedAttrs))
   if (res === 'error') {
