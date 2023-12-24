@@ -151,7 +151,7 @@ export class MysqlConnector implements MysqlMethod {
   public async update (table: string, set: Array<string>, where?: string): Promise<any> {
     let results: any
     let sql: string
-    sql = `UPDATE ${table} SET ${conditionSplicer(set)}`
+    sql = `UPDATE ${table} SET ${attrSplicer(set)}`
     if (where !== undefined && where.length > 0) {
       sql = `${sql} WHERE ${conditionSplicer(where)}`
     }
